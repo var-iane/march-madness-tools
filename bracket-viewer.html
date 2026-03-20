@@ -1,0 +1,1503 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2026 Bracket Pool</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f7f6f2;
+        --surface: #ffffff;
+        --border: #e2e0d8;
+        --border-strong: #c8c5ba;
+        --text: #1a1916;
+        --text-2: #6b6860;
+        --text-3: #9b9890;
+        --accent: #1a1916;
+        --live: #d44000;
+        --live-bg: #fff4ef;
+        --final-text: #9b9890;
+        --upcoming: #1a6b3a;
+        --upcoming-bg: #f0faf4;
+        --east: #2d4a8a;
+        --south: #8a2d2d;
+        --west: #1a6b3a;
+        --midwest: #6b3a1a;
+        --bar1: #b8c4e8;
+        --bar2: #b8dfc8;
+        --pill1-bg: #eef1fa;
+        --pill1-text: #2d4a8a;
+        --pill2-bg: #edf7f2;
+        --pill2-text: #1a6b3a;
+        --font: "DM Sans", sans-serif;
+        --mono: "DM Mono", monospace;
+        --radius: 8px;
+        --radius-lg: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      /* ── Header ── */
+      .hd {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 0.25rem;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .hd h1 {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .hd-meta {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text-2);
+      }
+      .tabs {
+        display: flex;
+        gap: 2px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 1.5rem;
+        margin-top: 1rem;
+      }
+      .tab {
+        padding: 8px 18px;
+        font-size: 13px;
+        font-family: var(--font);
+        cursor: pointer;
+        border: none;
+        background: none;
+        border-bottom: 2px solid transparent;
+        color: var(--text-2);
+      }
+      .tab.active {
+        color: var(--text);
+        border-bottom-color: var(--text);
+        font-weight: 500;
+      }
+      .tab:hover:not(.active) {
+        color: var(--text);
+      }
+
+      /* ── Legend ── */
+      .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+      }
+      .leg-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-family: var(--mono);
+        color: var(--text-2);
+      }
+      .leg-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      /* ── Bracket grid ── */
+      .bracket {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .quadrant {
+        background: var(--bg);
+        padding: 1.25rem;
+      }
+      .quadrant:nth-child(1) {
+        border-radius: var(--radius-lg) 0 0 0;
+      } /* East TL */
+      .quadrant:nth-child(2) {
+        border-radius: 0 var(--radius-lg) 0 0;
+      } /* West TR */
+      .quadrant:nth-child(3) {
+        border-radius: 0 0 0 var(--radius-lg);
+      } /* South BL */
+      .quadrant:nth-child(4) {
+        border-radius: 0 0 var(--radius-lg) 0;
+      } /* Midwest BR */
+
+      .q-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1rem;
+      }
+      .q-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 99px;
+      }
+      .q-label.east {
+        background: #eef1fa;
+        color: var(--east);
+      }
+      .q-label.south {
+        background: #faeeee;
+        color: var(--south);
+      }
+      .q-label.west {
+        background: #edf7f2;
+        color: var(--west);
+      }
+      .q-label.midwest {
+        background: #faf3ee;
+        color: var(--midwest);
+      }
+      .q-later {
+        font-size: 12px;
+        color: var(--text-3);
+        font-family: var(--mono);
+        margin-left: auto;
+      }
+
+      /* ── Game card ── */
+      .game {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 8px;
+        transition: border-color 0.15s;
+      }
+      .game:last-child {
+        margin-bottom: 0;
+      }
+      .game.live {
+        border-color: var(--live);
+        background: var(--live-bg);
+      }
+      .game.final {
+        opacity: 0.6;
+      }
+      .game-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .game-time {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-3);
+      }
+      .game-time.live-label {
+        color: var(--live);
+        font-weight: 500;
+      }
+      .game-time.upcoming-label {
+        color: var(--upcoming);
+      }
+      .game-name {
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      /* ── Pick bars ── */
+      .pick-section {
+      }
+      .team-row {
+        margin-bottom: 6px;
+      }
+      .team-row:last-child {
+        margin-bottom: 0;
+      }
+      .team-label {
+        font-size: 12px;
+        color: var(--text-2);
+        margin-bottom: 3px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .team-label span {
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .bar-bg {
+        height: 20px;
+        background: #f0efe9;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 7px;
+        font-size: 11px;
+        font-family: var(--mono);
+        font-weight: 500;
+        white-space: nowrap;
+        transition: width 0.4s ease;
+      }
+      .bar-fill.t1 {
+        background: var(--bar1);
+        color: var(--east);
+      }
+      .bar-fill.t2 {
+        background: var(--bar2);
+        color: var(--west);
+      }
+      .bar-fill.other {
+        background: #e8e4d8;
+        color: var(--text-2);
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 4px;
+      }
+      .pill {
+        font-family: var(--mono);
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 99px;
+      }
+      .pill.t1 {
+        background: var(--pill1-bg);
+        color: var(--pill1-text);
+      }
+      .pill.t2 {
+        background: var(--pill2-bg);
+        color: var(--pill2-text);
+      }
+      .pill.other {
+        background: #f0ede4;
+        color: var(--text-2);
+      }
+
+      /* ── Coming soon ── */
+      .coming-soon {
+        border: 1px dashed var(--border-strong);
+        border-radius: var(--radius);
+        padding: 1rem;
+        text-align: center;
+        color: var(--text-3);
+        font-family: var(--mono);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+
+      /* ── Person tab ── */
+      .person-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 8px;
+        margin-bottom: 1.5rem;
+      }
+      .pbtn {
+        padding: 8px 12px;
+        font-size: 13px;
+        font-family: var(--font);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        cursor: pointer;
+        color: var(--text);
+        text-align: left;
+      }
+      .pbtn.active {
+        background: var(--text);
+        color: #fff;
+        border-color: var(--text);
+      }
+      .pbtn:hover:not(.active) {
+        background: var(--border);
+      }
+      .champ-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .champ-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .champ-pick {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .person-rounds {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .person-quadrant {
+        background: var(--bg);
+        padding: 1rem 1.25rem;
+      }
+      .pq-header {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 0.75rem;
+      }
+      .pq-header.east {
+        color: var(--east);
+      }
+      .pq-header.south {
+        color: var(--south);
+      }
+      .pq-header.west {
+        color: var(--west);
+      }
+      .pq-header.midwest {
+        color: var(--midwest);
+      }
+      .pick-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .pick-row:last-child {
+        border-bottom: none;
+      }
+      .matchup-label {
+        color: var(--text-2);
+        font-size: 12px;
+        font-family: var(--mono);
+      }
+      .pick-val {
+        font-weight: 500;
+      }
+
+      @media (max-width: 640px) {
+        .bracket {
+          grid-template-columns: 1fr;
+        }
+        .quadrant:nth-child(1) {
+          border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+        .quadrant:nth-child(2) {
+          border-radius: 0;
+        }
+        .quadrant:nth-child(3) {
+          border-radius: 0;
+        }
+        .quadrant:nth-child(4) {
+          border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        }
+        .person-rounds {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="hd">
+        <h1>2026 March Hoopla Bracket Pool</h1>
+        <span class="hd-meta">15 players · First Round</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('bracket', this)">
+          Bracket
+        </button>
+        <button class="tab" onclick="switchTab('person', this)">
+          By person
+        </button>
+      </div>
+
+      <div id="tab-bracket">
+        <div class="legend">
+          <div class="leg-item">
+            <div class="leg-dot" style="background: var(--live)"></div>
+            Live
+          </div>
+          <div class="leg-item">
+            <div class="leg-dot" style="background: var(--upcoming)"></div>
+            Upcoming
+          </div>
+          <div class="leg-item">
+            <div class="leg-dot" style="background: var(--border-strong)"></div>
+            Final
+          </div>
+        </div>
+        <div class="bracket" id="bracketGrid"></div>
+      </div>
+
+      <div id="tab-person" style="display: none">
+        <div class="person-grid" id="personGrid"></div>
+        <div class="champ-card">
+          <div>
+            <div class="champ-label">Champion pick</div>
+            <div class="champ-pick" id="champPick">—</div>
+          </div>
+        </div>
+        <div class="person-rounds" id="personRounds"></div>
+      </div>
+    </div>
+
+    <script>
+      const PICKS_DATA = [
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "Duke vs Siena",
+          team1: "Duke",
+          team2: "Siena",
+          picks: {
+            Abby: "Duke",
+            Alycrum: "Duke",
+            Andrew: "Duke",
+            Ariane: "Duke",
+            Emily: "Duke",
+            Helena: "Duke",
+            Josh: "Duke",
+            Li: "Duke",
+            Lila: "Duke",
+            Lucas: "Duke",
+            Roman: "Duke",
+            Ryan: "Duke",
+            Soma: "Duke",
+            Sonja: "Duke",
+            Windy: "Duke",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "Ohio St. vs TCU",
+          team1: "Ohio St.",
+          team2: "TCU",
+          picks: {
+            Abby: "Ohio St.",
+            Alycrum: "TCU",
+            Andrew: "TCU",
+            Ariane: "Ohio St.",
+            Emily: "Ohio St.",
+            Helena: "Ohio St.",
+            Josh: "TCU",
+            Li: "Ohio St.",
+            Lila: "Ohio St.",
+            Lucas: "TCU",
+            Roman: "Ohio St.",
+            Ryan: "Ohio St.",
+            Soma: "Ohio St.",
+            Sonja: "Ohio St.",
+            Windy: "TCU",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "St. John's vs N. Iowa",
+          team1: "St. John's",
+          team2: "N. Iowa",
+          picks: {
+            Abby: "St. John's",
+            Alycrum: "St. John's",
+            Andrew: "St. John's",
+            Ariane: "St. John's",
+            Emily: "St. John's",
+            Helena: "St. John's",
+            Josh: "St. John's",
+            Li: "N. Iowa",
+            Lila: "St. John's",
+            Lucas: "St. John's",
+            Roman: "St. John's",
+            Ryan: "St. John's",
+            Soma: "St. John's",
+            Sonja: "N. Iowa",
+            Windy: "St. John's",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "Kansas vs Cal Baptist",
+          team1: "Kansas",
+          team2: "Cal Baptist",
+          picks: {
+            Abby: "Kansas",
+            Alycrum: "Kansas",
+            Andrew: "Cal Baptist",
+            Ariane: "Kansas",
+            Emily: "Kansas",
+            Helena: "Cal Baptist",
+            Josh: "Kansas",
+            Li: "Kansas",
+            Lila: "Kansas",
+            Lucas: "Kansas",
+            Roman: "Kansas",
+            Ryan: "Kansas",
+            Soma: "Kansas",
+            Sonja: "Kansas",
+            Windy: "Kansas",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "Louisville vs SFLA",
+          team1: "Louisville",
+          team2: "SFLA",
+          picks: {
+            Abby: "SFLA",
+            Alycrum: "SFLA",
+            Andrew: "SFLA",
+            Ariane: "SFLA",
+            Emily: "Louisville",
+            Helena: "Louisville",
+            Josh: "SFLA",
+            Li: "Louisville",
+            Lila: "Louisville",
+            Lucas: "SFLA",
+            Roman: "Louisville",
+            Ryan: "Louisville",
+            Soma: "Louisville",
+            Sonja: "Louisville",
+            Windy: "SFLA",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "MICHST vs NDAKST",
+          team1: "MICHST",
+          team2: "NDAKST",
+          picks: {
+            Abby: "MICHST",
+            Alycrum: "MICHST",
+            Andrew: "MICHST",
+            Ariane: "MICHST",
+            Emily: "MICHST",
+            Helena: "MICHST",
+            Josh: "MICHST",
+            Li: "MICHST",
+            Lila: "NDAKST",
+            Lucas: "NDAKST",
+            Roman: "MICHST",
+            Ryan: "MICHST",
+            Soma: "MICHST",
+            Sonja: "MICHST",
+            Windy: "MICHST",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "UCLA vs UCF",
+          team1: "UCLA",
+          team2: "UCF",
+          picks: {
+            Abby: "UCF",
+            Alycrum: "UCLA",
+            Andrew: "UCF",
+            Ariane: "UCLA",
+            Emily: "UCLA",
+            Helena: "UCLA",
+            Josh: "UCLA",
+            Li: "UCLA",
+            Lila: "UCLA",
+            Lucas: "UCF",
+            Roman: "UCF",
+            Ryan: "UCLA",
+            Soma: "UCLA",
+            Sonja: "UCF",
+            Windy: "UCLA",
+          },
+        },
+        {
+          round: "First Round",
+          region: "East",
+          game_id: "UConn vs Furman",
+          team1: "UConn",
+          team2: "Furman",
+          picks: {
+            Abby: "UConn",
+            Alycrum: "UConn",
+            Andrew: "UConn",
+            Ariane: "UConn",
+            Emily: "UConn",
+            Helena: "UConn",
+            Josh: "UConn",
+            Li: "UConn",
+            Lila: "UConn",
+            Lucas: "UConn",
+            Roman: "UConn",
+            Ryan: "UConn",
+            Soma: "UConn",
+            Sonja: "UConn",
+            Windy: "UConn",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "Florida vs PVAM",
+          team1: "Florida",
+          team2: "PVAM",
+          picks: {
+            Abby: "Florida",
+            Alycrum: "Florida",
+            Andrew: "Florida",
+            Ariane: "Florida",
+            Emily: "Florida",
+            Helena: "Florida",
+            Josh: "Florida",
+            Li: "Florida",
+            Lila: "Florida",
+            Lucas: "Florida",
+            Roman: "Florida",
+            Ryan: "Florida",
+            Soma: "Florida",
+            Sonja: "Florida",
+            Windy: "Florida",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "Clemson vs Iowa",
+          team1: "Clemson",
+          team2: "Iowa",
+          picks: {
+            Abby: "Iowa",
+            Alycrum: "Iowa",
+            Andrew: "Iowa",
+            Ariane: "Iowa",
+            Emily: "Iowa",
+            Helena: "Iowa",
+            Josh: "Iowa",
+            Li: "Iowa",
+            Lila: "Iowa",
+            Lucas: "Iowa",
+            Roman: "Clemson",
+            Ryan: "Iowa",
+            Soma: "Iowa",
+            Sonja: "Clemson",
+            Windy: "Clemson",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "Vanderbilt vs McNeese",
+          team1: "Vanderbilt",
+          team2: "McNeese",
+          picks: {
+            Abby: "Vanderbilt",
+            Alycrum: "Vanderbilt",
+            Andrew: "McNeese",
+            Ariane: "Vanderbilt",
+            Emily: "Vanderbilt",
+            Helena: "Vanderbilt",
+            Josh: "Vanderbilt",
+            Li: "McNeese",
+            Lila: "McNeese",
+            Lucas: "McNeese",
+            Roman: "Vanderbilt",
+            Ryan: "Vanderbilt",
+            Soma: "McNeese",
+            Sonja: "McNeese",
+            Windy: "Vanderbilt",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "Nebraska vs Troy",
+          team1: "Nebraska",
+          team2: "Troy",
+          picks: {
+            Abby: "Troy",
+            Alycrum: "Nebraska",
+            Andrew: "Nebraska",
+            Ariane: "Nebraska",
+            Emily: "Nebraska",
+            Helena: "Nebraska",
+            Josh: "Nebraska",
+            Li: "Nebraska",
+            Lila: "Nebraska",
+            Lucas: "Nebraska",
+            Roman: "Nebraska",
+            Ryan: "Nebraska",
+            Soma: "Nebraska",
+            Sonja: "Troy",
+            Windy: "Nebraska",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "N. Carolina vs VCU",
+          team1: "N. Carolina",
+          team2: "VCU",
+          picks: {
+            Abby: "N. Carolina",
+            Alycrum: "VCU",
+            Andrew: "VCU",
+            Ariane: "VCU",
+            Emily: "N. Carolina",
+            Helena: "N. Carolina",
+            Josh: "VCU",
+            Li: "VCU",
+            Lila: "N. Carolina",
+            Lucas: "N. Carolina",
+            Roman: "N. Carolina",
+            Ryan: "VCU",
+            Soma: "VCU",
+            Sonja: "N. Carolina",
+            Windy: "N. Carolina",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "Illinois vs Penn",
+          team1: "Illinois",
+          team2: "Penn",
+          picks: {
+            Abby: "Illinois",
+            Alycrum: "Illinois",
+            Andrew: "Illinois",
+            Ariane: "Illinois",
+            Emily: "Illinois",
+            Helena: "Penn",
+            Josh: "Illinois",
+            Li: "Illinois",
+            Lila: "Illinois",
+            Lucas: "Illinois",
+            Roman: "Illinois",
+            Ryan: "Illinois",
+            Soma: "Illinois",
+            Sonja: "Illinois",
+            Windy: "Illinois",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "MARYCA vs Texas A&M",
+          team1: "MARYCA",
+          team2: "Texas A&M",
+          picks: {
+            Abby: "Texas A&M",
+            Alycrum: "Texas A&M",
+            Andrew: "MARYCA",
+            Ariane: "MARYCA",
+            Emily: "Texas A&M",
+            Helena: "MARYCA",
+            Josh: "MARYCA",
+            Li: "MARYCA",
+            Lila: "MARYCA",
+            Lucas: "Texas A&M",
+            Roman: "Texas A&M",
+            Ryan: "Texas A&M",
+            Soma: "MARYCA",
+            Sonja: "MARYCA",
+            Windy: "MARYCA",
+          },
+        },
+        {
+          round: "First Round",
+          region: "South",
+          game_id: "Houston vs Idaho",
+          team1: "Houston",
+          team2: "Idaho",
+          picks: {
+            Abby: "Idaho",
+            Alycrum: "Houston",
+            Andrew: "Houston",
+            Ariane: "Houston",
+            Emily: "Houston",
+            Helena: "Houston",
+            Josh: "Houston",
+            Li: "Houston",
+            Lila: "Houston",
+            Lucas: "Houston",
+            Roman: "Houston",
+            Ryan: "Houston",
+            Soma: "Houston",
+            Sonja: "Idaho",
+            Windy: "Houston",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Arizona vs LIU",
+          team1: "Arizona",
+          team2: "LIU",
+          picks: {
+            Abby: "Arizona",
+            Alycrum: "Arizona",
+            Andrew: "Arizona",
+            Ariane: "Arizona",
+            Emily: "Arizona",
+            Helena: "Arizona",
+            Josh: "Arizona",
+            Li: "Arizona",
+            Lila: "Arizona",
+            Lucas: "Arizona",
+            Roman: "Arizona",
+            Ryan: "Arizona",
+            Soma: "Arizona",
+            Sonja: "Arizona",
+            Windy: "Arizona",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Villanova vs Utah St.",
+          team1: "Villanova",
+          team2: "Utah St.",
+          picks: {
+            Abby: "Utah St.",
+            Alycrum: "Utah St.",
+            Andrew: "Villanova",
+            Ariane: "Utah St.",
+            Emily: "Utah St.",
+            Helena: "Utah St.",
+            Josh: "Utah St.",
+            Li: "Utah St.",
+            Lila: "Utah St.",
+            Lucas: "Utah St.",
+            Roman: "Utah St.",
+            Ryan: "Villanova",
+            Soma: "Villanova",
+            Sonja: "Villanova",
+            Windy: "Villanova",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Wisconsin vs High Point",
+          team1: "Wisconsin",
+          team2: "High Point",
+          picks: {
+            Abby: "Wisconsin",
+            Alycrum: "Wisconsin",
+            Andrew: "Wisconsin",
+            Ariane: "Wisconsin",
+            Emily: "Wisconsin",
+            Helena: "Wisconsin",
+            Josh: "Wisconsin",
+            Li: "High Point",
+            Lila: "Wisconsin",
+            Lucas: "High Point",
+            Roman: "Wisconsin",
+            Ryan: "Wisconsin",
+            Soma: "Wisconsin",
+            Sonja: "Wisconsin",
+            Windy: "Wisconsin",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Arkansas vs Hawaii",
+          team1: "Arkansas",
+          team2: "Hawaii",
+          picks: {
+            Abby: "Hawaii",
+            Alycrum: "Arkansas",
+            Andrew: "Arkansas",
+            Ariane: "Arkansas",
+            Emily: "Arkansas",
+            Helena: "Arkansas",
+            Josh: "Arkansas",
+            Li: "Arkansas",
+            Lila: "Arkansas",
+            Lucas: "Arkansas",
+            Roman: "Arkansas",
+            Ryan: "Hawaii",
+            Soma: "Arkansas",
+            Sonja: "Arkansas",
+            Windy: "Arkansas",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "BYU vs Texas",
+          team1: "BYU",
+          team2: "Texas",
+          picks: {
+            Abby: "Texas",
+            Alycrum: "Texas",
+            Andrew: "BYU",
+            Ariane: "Texas",
+            Emily: "BYU",
+            Helena: "BYU",
+            Josh: "Texas",
+            Li: "Texas",
+            Lila: "BYU",
+            Lucas: "Texas",
+            Roman: "BYU",
+            Ryan: "Texas",
+            Soma: "BYU",
+            Sonja: "BYU",
+            Windy: "BYU",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Gonzaga vs KENSAW",
+          team1: "Gonzaga",
+          team2: "KENSAW",
+          picks: {
+            Abby: "Gonzaga",
+            Alycrum: "Gonzaga",
+            Andrew: "Gonzaga",
+            Ariane: "Gonzaga",
+            Emily: "Gonzaga",
+            Helena: "Gonzaga",
+            Josh: "Gonzaga",
+            Li: "Gonzaga",
+            Lila: "KENSAW",
+            Lucas: "KENSAW",
+            Roman: "Gonzaga",
+            Ryan: "Gonzaga",
+            Soma: "Gonzaga",
+            Sonja: "Gonzaga",
+            Windy: "Gonzaga",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Miami vs Missouri",
+          team1: "Miami",
+          team2: "Missouri",
+          picks: {
+            Abby: "Missouri",
+            Alycrum: "Missouri",
+            Andrew: "Missouri",
+            Ariane: "Missouri",
+            Emily: "Miami",
+            Helena: "Miami",
+            Josh: "Missouri",
+            Li: "Miami",
+            Lila: "Miami",
+            Lucas: "Miami",
+            Roman: "Missouri",
+            Ryan: "Missouri",
+            Soma: "Missouri",
+            Sonja: "Missouri",
+            Windy: "Miami",
+          },
+        },
+        {
+          round: "First Round",
+          region: "West",
+          game_id: "Purdue vs Queens",
+          team1: "Purdue",
+          team2: "Queens",
+          picks: {
+            Abby: "Purdue",
+            Alycrum: "Purdue",
+            Andrew: "Purdue",
+            Ariane: "Purdue",
+            Emily: "Purdue",
+            Helena: "Purdue",
+            Josh: "Purdue",
+            Li: "Purdue",
+            Lila: "Purdue",
+            Lucas: "Purdue",
+            Roman: "Purdue",
+            Ryan: "Purdue",
+            Soma: "Purdue",
+            Sonja: "Queens",
+            Windy: "Purdue",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Michigan vs Howard",
+          team1: "Michigan",
+          team2: "Howard",
+          picks: {
+            Abby: "Howard",
+            Alycrum: "Michigan",
+            Andrew: "Michigan",
+            Ariane: "Michigan",
+            Emily: "Michigan",
+            Helena: "Michigan",
+            Josh: "Michigan",
+            Li: "Michigan",
+            Lila: "Michigan",
+            Lucas: "Michigan",
+            Roman: "Michigan",
+            Ryan: "Michigan",
+            Soma: "Michigan",
+            Sonja: "Michigan",
+            Windy: "Michigan",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Georgia vs Saint Louis",
+          team1: "Georgia",
+          team2: "Saint Louis",
+          picks: {
+            Abby: "Georgia",
+            Alycrum: "Georgia",
+            Andrew: "Saint Louis",
+            Ariane: "Georgia",
+            Emily: "Georgia",
+            Helena: "Georgia",
+            Josh: "Saint Louis",
+            Li: "Saint Louis",
+            Lila: "Georgia",
+            Lucas: "Georgia",
+            Roman: "Georgia",
+            Ryan: "Georgia",
+            Soma: "Saint Louis",
+            Sonja: "Georgia",
+            Windy: "Georgia",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Texas Tech vs Akron",
+          team1: "Texas Tech",
+          team2: "Akron",
+          picks: {
+            Abby: "Akron",
+            Alycrum: "Texas Tech",
+            Andrew: "Texas Tech",
+            Ariane: "Texas Tech",
+            Emily: "Texas Tech",
+            Helena: "Texas Tech",
+            Josh: "Akron",
+            Li: "Texas Tech",
+            Lila: "Texas Tech",
+            Lucas: "Akron",
+            Roman: "Texas Tech",
+            Ryan: "Akron",
+            Soma: "Texas Tech",
+            Sonja: "Akron",
+            Windy: "Texas Tech",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Alabama vs Hofstra",
+          team1: "Alabama",
+          team2: "Hofstra",
+          picks: {
+            Abby: "Alabama",
+            Alycrum: "Alabama",
+            Andrew: "Hofstra",
+            Ariane: "Alabama",
+            Emily: "Alabama",
+            Helena: "Alabama",
+            Josh: "Alabama",
+            Li: "Alabama",
+            Lila: "Hofstra",
+            Lucas: "Alabama",
+            Roman: "Alabama",
+            Ryan: "Hofstra",
+            Soma: "Alabama",
+            Sonja: "Hofstra",
+            Windy: "Alabama",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Tennessee vs MIAOH",
+          team1: "Tennessee",
+          team2: "MIAOH",
+          picks: {
+            Abby: "MIAOH",
+            Alycrum: "MIAOH",
+            Andrew: "Tennessee",
+            Ariane: "Tennessee",
+            Emily: "Tennessee",
+            Helena: "Tennessee",
+            Josh: "Tennessee",
+            Li: "MIAOH",
+            Lila: "Tennessee",
+            Lucas: "MIAOH",
+            Roman: "Tennessee",
+            Ryan: "MIAOH",
+            Soma: "Tennessee",
+            Sonja: "Tennessee",
+            Windy: "Tennessee",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Virginia vs Wright St.",
+          team1: "Virginia",
+          team2: "Wright St.",
+          picks: {
+            Abby: "Virginia",
+            Alycrum: "Virginia",
+            Andrew: "Wright St.",
+            Ariane: "Virginia",
+            Emily: "Virginia",
+            Helena: "Virginia",
+            Josh: "Virginia",
+            Li: "Virginia",
+            Lila: "Virginia",
+            Lucas: "Virginia",
+            Roman: "Virginia",
+            Ryan: "Virginia",
+            Soma: "Virginia",
+            Sonja: "Wright St.",
+            Windy: "Virginia",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Kentucky vs Santa Clara",
+          team1: "Kentucky",
+          team2: "Santa Clara",
+          picks: {
+            Abby: "Santa Clara",
+            Alycrum: "Santa Clara",
+            Andrew: "Santa Clara",
+            Ariane: "Santa Clara",
+            Emily: "Kentucky",
+            Helena: "Santa Clara",
+            Josh: "Kentucky",
+            Li: "Santa Clara",
+            Lila: "Santa Clara",
+            Lucas: "Santa Clara",
+            Roman: "Kentucky",
+            Ryan: "Santa Clara",
+            Soma: "Santa Clara",
+            Sonja: "Santa Clara",
+            Windy: "Santa Clara",
+          },
+        },
+        {
+          round: "First Round",
+          region: "Midwest",
+          game_id: "Iowa St. vs Tenn. State",
+          team1: "Iowa St.",
+          team2: "Tenn. State",
+          picks: {
+            Abby: "Iowa St.",
+            Alycrum: "Iowa St.",
+            Andrew: "Iowa St.",
+            Ariane: "Iowa St.",
+            Emily: "Iowa St.",
+            Helena: "Iowa St.",
+            Josh: "Iowa St.",
+            Li: "Iowa St.",
+            Lila: "Iowa St.",
+            Lucas: "Iowa St.",
+            Roman: "Iowa St.",
+            Ryan: "Iowa St.",
+            Soma: "Iowa St.",
+            Sonja: "Tenn. State",
+            Windy: "Iowa St.",
+          },
+        },
+      ];
+      const PEOPLE = [
+        "Abby",
+        "Alycrum",
+        "Andrew",
+        "Ariane",
+        "Emily",
+        "Helena",
+        "Josh",
+        "Li",
+        "Lila",
+        "Lucas",
+        "Roman",
+        "Ryan",
+        "Soma",
+        "Sonja",
+        "Windy",
+      ];
+    </script>
+
+    <script>
+      // Tip-off times stored as ET (UTC-4 during EDT)
+      // Each value is a UTC timestamp string so the browser can localise display and compute status
+      const TIPOFFS = {
+        "Duke vs Siena": "2026-03-19T16:00:00-04:00",
+        "Nebraska vs Troy": "2026-03-19T13:40:00-04:00",
+        "Ohio St. vs TCU": "2026-03-19T13:15:00-04:00",
+        "Louisville vs SFLA": "2026-03-19T14:30:00-04:00",
+        "Wisconsin vs High Point": "2026-03-19T14:50:00-04:00",
+        "Vanderbilt vs McNeese": "2026-03-19T16:15:00-04:00",
+        "Arkansas vs Hawaii": "2026-03-19T17:27:00-04:00",
+        "MICHST vs NDAKST": "2026-03-19T17:27:00-04:00",
+        "N. Carolina vs VCU": "2026-03-19T19:50:00-04:00",
+        "Michigan vs Howard": "2026-03-19T20:30:00-04:00",
+        "MARYCA vs Texas A&M": "2026-03-19T20:35:00-04:00",
+        "BYU vs Texas": "2026-03-19T20:35:00-04:00",
+        "Illinois vs Penn": "2026-03-19T22:55:00-04:00",
+        "Georgia vs Saint Louis": "2026-03-19T23:10:00-04:00",
+        "Houston vs Idaho": "2026-03-19T23:15:00-04:00",
+        "Gonzaga vs KENSAW": "2026-03-19T23:24:00-04:00",
+        "Kentucky vs Santa Clara": "2026-03-20T13:15:00-04:00",
+        "Texas Tech vs Akron": "2026-03-20T13:40:00-04:00",
+        "Arizona vs LIU": "2026-03-20T14:35:00-04:00",
+        "Virginia vs Wright St.": "2026-03-20T14:50:00-04:00",
+        "Iowa St. vs Tenn. State": "2026-03-20T15:50:00-04:00",
+        "Alabama vs Hofstra": "2026-03-20T16:15:00-04:00",
+        "Villanova vs Utah St.": "2026-03-20T17:10:00-04:00",
+        "Tennessee vs MIAOH": "2026-03-20T17:25:00-04:00",
+        "Clemson vs Iowa": "2026-03-20T19:50:00-04:00",
+        "St. John's vs N. Iowa": "2026-03-20T20:10:00-04:00",
+        "UCLA vs UCF": "2026-03-20T20:25:00-04:00",
+        "Purdue vs Queens": "2026-03-20T20:35:00-04:00",
+        "Florida vs PVAM": "2026-03-20T22:25:00-04:00",
+        "Kansas vs Cal Baptist": "2026-03-20T22:45:00-04:00",
+        "UConn vs Furman": "2026-03-20T23:00:00-04:00",
+        "Miami vs Missouri": "2026-03-20T23:10:00-04:00",
+      };
+
+      const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000; // 2.5 hours after tip-off = approximate "live" window
+
+      function getGameInfo(gameId) {
+        const iso = TIPOFFS[gameId];
+        if (!iso)
+          return { displayTime: "TBD", status: "upcoming", tipoff: null };
+        const tipoff = new Date(iso);
+        const now = new Date();
+        const msSince = now - tipoff;
+        let status;
+        if (msSince < 0) status = "upcoming";
+        else if (msSince < LIVE_WINDOW_MS) status = "live";
+        else status = "final";
+        const displayTime = tipoff.toLocaleString([], {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+        return { displayTime, status, tipoff };
+      }
+
+      const STATUS_ORDER = { live: 0, upcoming: 1, final: 2 };
+
+      function gameCard(g) {
+        const { displayTime, status } = getGameInfo(g.game_id);
+        const picks = g.picks;
+        const t1p = Object.entries(picks)
+          .filter(([, v]) => v === g.team1)
+          .map(([k]) => k);
+        const t2p = Object.entries(picks)
+          .filter(([, v]) => v === g.team2)
+          .map(([k]) => k);
+        const otp = Object.entries(picks).filter(
+          ([, v]) => v !== g.team1 && v !== g.team2,
+        );
+        const total = t1p.length + t2p.length + otp.length || 1;
+        const t1pct = Math.round((t1p.length / total) * 100);
+        const t2pct = Math.round((t2p.length / total) * 100);
+        const otpct = 100 - t1pct - t2pct;
+
+        const timeLabel =
+          status === "live"
+            ? `<span class="game-time live-label">● LIVE</span>`
+            : status === "upcoming"
+              ? `<span class="game-time upcoming-label">${displayTime}</span>`
+              : `<span class="game-time">${displayTime} · Final</span>`;
+
+        const otherBlock = otp.length
+          ? `
+    <div class="team-row">
+      <div class="team-label">Other <span>${otp.length}</span></div>
+      <div class="bar-bg"><div class="bar-fill other" style="width:${otpct}%">${otpct > 8 ? otpct + "%" : ""}</div></div>
+      <div class="pills">${otp.map(([p, v]) => `<span class="pill other">${p}→${v}</span>`).join("")}</div>
+    </div>`
+          : "";
+
+        return `<div class="game ${status === "live" ? "live" : status === "final" ? "final" : ""}">
+    <div class="game-top">
+      <div class="game-name">${g.team1} <span style="color:var(--text-3);font-weight:400">vs</span> ${g.team2}</div>
+      ${timeLabel}
+    </div>
+    <div class="pick-section">
+      <div class="team-row">
+        <div class="team-label">${g.team1} <span>${t1p.length}</span></div>
+        <div class="bar-bg"><div class="bar-fill t1" style="width:${t1pct}%">${t1pct > 8 ? t1pct + "%" : ""}</div></div>
+        <div class="pills">${t1p.map((p) => `<span class="pill t1">${p}</span>`).join("")}</div>
+      </div>
+      <div class="team-row">
+        <div class="team-label">${g.team2} <span>${t2p.length}</span></div>
+        <div class="bar-bg"><div class="bar-fill t2" style="width:${t2pct}%">${t2pct > 8 ? t2pct + "%" : ""}</div></div>
+        <div class="pills">${t2p.map((p) => `<span class="pill t2">${p}</span>`).join("")}</div>
+      </div>
+      ${otherBlock}
+    </div>
+  </div>`;
+      }
+
+      function buildBracket() {
+        const regions = [
+          { key: "East", cls: "east", pos: 0 },
+          { key: "West", cls: "west", pos: 1 },
+          { key: "South", cls: "south", pos: 2 },
+          { key: "Midwest", cls: "midwest", pos: 3 },
+        ];
+        const r1 = PICKS_DATA.filter((d) => d.round === "First Round");
+        const grid = document.getElementById("bracketGrid");
+
+        // Build 4 quadrants in order: East(TL), West(TR), South(BL), Midwest(BR)
+        grid.innerHTML = regions
+          .map(({ key, cls }) => {
+            const games = r1
+              .filter((d) => d.region === key)
+              .sort((a, b) => {
+                const sa = getGameInfo(a.game_id);
+                const sb = getGameInfo(b.game_id);
+                const so =
+                  (STATUS_ORDER[sa.status] ?? 3) -
+                  (STATUS_ORDER[sb.status] ?? 3);
+                if (so !== 0) return so;
+                return (sa.tipoff || 0) - (sb.tipoff || 0);
+              });
+            return `<div class="quadrant">
+      <div class="q-header">
+        <span class="q-label ${cls}">${key}</span>
+        <span class="q-later">Round 2 picks TBA</span>
+      </div>
+      ${games.map(gameCard).join("")}
+    </div>`;
+          })
+          .join("");
+      }
+
+      function buildPersonGrid() {
+        document.getElementById("personGrid").innerHTML = PEOPLE.map(
+          (p) =>
+            `<button class="pbtn${p === PEOPLE[0] ? " active" : ""}" onclick="setPerson('${p}',this)">${p}</button>`,
+        ).join("");
+        renderPerson(PEOPLE[0]);
+      }
+
+      function setPerson(p, el) {
+        document
+          .querySelectorAll(".pbtn")
+          .forEach((x) => x.classList.remove("active"));
+        el.classList.add("active");
+        renderPerson(p);
+      }
+
+      function renderPerson(p) {
+        const champ = PICKS_DATA.find((d) => d.round === "Championship");
+        document.getElementById("champPick").textContent = champ
+          ? champ.picks[p] || "—"
+          : "—";
+
+        const regions = [
+          { key: "East", cls: "east" },
+          { key: "West", cls: "west" },
+          { key: "South", cls: "south" },
+          { key: "Midwest", cls: "midwest" },
+        ];
+        const rounds = ["First Round", "Second Round", "Sweet 16", "Elite 8"];
+
+        document.getElementById("personRounds").innerHTML = regions
+          .map(({ key, cls }) => {
+            const rows =
+              rounds
+                .flatMap((round) => {
+                  const games = PICKS_DATA.filter(
+                    (d) => d.round === round && d.region === key,
+                  );
+                  return games.map((g) => {
+                    const pick = g.picks[p] || "—";
+                    return `<div class="pick-row">
+          <span class="matchup-label">${g.game_id.replace(" vs ", " v ")}</span>
+          <span class="pick-val">${pick}</span>
+        </div>`;
+                  });
+                })
+                .join("") ||
+              '<div class="pick-row"><span class="matchup-label">Picks TBA</span></div>';
+
+            return `<div class="person-quadrant">
+      <div class="pq-header ${cls}">${key}</div>
+      ${rows}
+    </div>`;
+          })
+          .join("");
+      }
+
+      function switchTab(t, el) {
+        document
+          .querySelectorAll(".tab")
+          .forEach((x) => x.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("tab-bracket").style.display =
+          t === "bracket" ? "" : "none";
+        document.getElementById("tab-person").style.display =
+          t === "person" ? "" : "none";
+      }
+
+      buildBracket();
+      buildPersonGrid();
+    </script>
+  </body>
+</html>
