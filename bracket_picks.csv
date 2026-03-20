@@ -1,11 +1,11 @@
 round,round_num,region,slot,seed1,team1,seed2,team2,result,Abby,Alycrum,Andrew,Ariane,Emily,Helena,Josh,Li,Lila,Lucas,Roman,Ryan,Soma,Sonja,Windy
 First Round,1,East,1-16,1,Duke,16,Siena,,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke,Duke
-First Round,1,East,8-9,8,Ohio St.,9,TCU,,Ohio St.,TCU,TCU,Ohio St.,Ohio St.,Ohio St.,TCU,Ohio St.,Ohio St.,TCU,Ohio St.,Ohio St.,Ohio St.,Ohio St.,TCU
+First Round,1,East,8-9,8,Ohio St.,9,Texas Christian,,Ohio St.,Texas Christian,Texas Christian,Ohio St.,Ohio St.,Ohio St.,Texas Christian,Ohio St.,Ohio St.,Texas Christian,Ohio St.,Ohio St.,Ohio St.,Ohio St.,Texas Christian
 First Round,1,East,5-12,5,St. John's,12,N. Iowa,,St. John's,St. John's,St. John's,St. John's,St. John's,St. John's,St. John's,N. Iowa,St. John's,St. John's,St. John's,St. John's,St. John's,N. Iowa,St. John's
 First Round,1,East,4-13,4,Kansas,13,Cal Baptist,,Kansas,Kansas,Cal Baptist,Kansas,Kansas,Cal Baptist,Kansas,Kansas,Kansas,Kansas,Kansas,Kansas,Kansas,Kansas,Kansas
-First Round,1,East,6-11,6,Louisville,11,SFLA,,SFLA,SFLA,SFLA,SFLA,Louisville,Louisville,SFLA,Louisville,Louisville,SFLA,Louisville,Louisville,Louisville,Louisville,SFLA
-First Round,1,East,3-14,3,MICHST,14,NDAKST,,MICHST,MICHST,MICHST,MICHST,MICHST,MICHST,MICHST,MICHST,NDAKST,NDAKST,MICHST,MICHST,MICHST,MICHST,MICHST
-First Round,1,East,7-10,7,UCLA,10,UCF,,UCF,UCLA,UCF,UCLA,UCLA,UCLA,UCLA,UCLA,UCLA,UCF,UCF,UCLA,UCLA,UCF,UCLA
+First Round,1,East,6-11,6,Louisville,11,South Florida,,South Florida,South Florida,South Florida,South Florida,Louisville,Louisville,South Florida,Louisville,Louisville,South Florida,Louisville,Louisville,Louisville,Louisville,South Florida
+First Round,1,East,3-14,3,Michigan St.,14,N. Dakota St.,,Michigan St.,Michigan St.,Michigan St.,Michigan St.,Michigan St.,Michigan St.,Michigan St.,Michigan St.,N. Dakota St.,N. Dakota St.,Michigan St.,Michigan St.,Michigan St.,Michigan St.,Michigan St.
+First Round,1,East,7-10,7,UCLA,10,Central Florida,,Central Florida,UCLA,Central Florida,UCLA,UCLA,UCLA,UCLA,UCLA,UCLA,Central Florida,Central Florida,UCLA,UCLA,Central Florida,UCLA
 First Round,1,East,2-15,2,UConn,15,Furman,,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn,UConn
 Second Round,2,East,1/16-8/9,,,,,,,,,,,,,,,,,,,,
 Second Round,2,East,5/12-4/13,,,,,,,,,,,,,,,,,,,,
@@ -14,13 +14,13 @@ Second Round,2,East,7/10-2/15,,,,,,,,,,,,,,,,,,,,
 Sweet 16,3,East,1/16-8/9 vs 5/12-4/13,,,,,,,,,,,,,,,,,,,,
 Sweet 16,3,East,6/11-3/14 vs 7/10-2/15,,,,,,,,,,,,,,,,,,,,
 Elite 8,4,East,regional final,,,,,,,,,,,,,,,,,,,,
-First Round,1,South,1-16,1,Florida,16,PVAM,,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida
+First Round,1,South,1-16,1,Florida,16,Prairie View,,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida,Florida
 First Round,1,South,8-9,8,Clemson,9,Iowa,,Iowa,Iowa,Iowa,Iowa,Iowa,Iowa,Iowa,Iowa,Iowa,Iowa,Clemson,Iowa,Iowa,Clemson,Clemson
 First Round,1,South,5-12,5,Vanderbilt,12,McNeese,,Vanderbilt,Vanderbilt,McNeese,Vanderbilt,Vanderbilt,Vanderbilt,Vanderbilt,McNeese,McNeese,McNeese,Vanderbilt,Vanderbilt,McNeese,McNeese,Vanderbilt
 First Round,1,South,4-13,4,Nebraska,13,Troy,,Troy,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Nebraska,Troy,Nebraska
 First Round,1,South,6-11,6,N. Carolina,11,VCU,,N. Carolina,VCU,VCU,VCU,N. Carolina,N. Carolina,VCU,VCU,N. Carolina,N. Carolina,N. Carolina,VCU,VCU,N. Carolina,N. Carolina
 First Round,1,South,3-14,3,Illinois,14,Penn,,Illinois,Illinois,Illinois,Illinois,Illinois,Penn,Illinois,Illinois,Illinois,Illinois,Illinois,Illinois,Illinois,Illinois,Illinois
-First Round,1,South,7-10,7,MARYCA,10,Texas A&M,,Texas A&M,Texas A&M,MARYCA,MARYCA,Texas A&M,MARYCA,MARYCA,MARYCA,MARYCA,Texas A&M,Texas A&M,Texas A&M,MARYCA,MARYCA,MARYCA
+First Round,1,South,7-10,7,St. Mary's,10,Texas A&M,,Texas A&M,Texas A&M,St. Mary's,St. Mary's,Texas A&M,St. Mary's,St. Mary's,St. Mary's,St. Mary's,Texas A&M,Texas A&M,Texas A&M,St. Mary's,St. Mary's,St. Mary's
 First Round,1,South,2-15,2,Houston,15,Idaho,,Idaho,Houston,Houston,Houston,Houston,Houston,Houston,Houston,Houston,Houston,Houston,Houston,Houston,Idaho,Houston
 Second Round,2,South,1/16-8/9,,,,,,,,,,,,,,,,,,,,
 Second Round,2,South,5/12-4/13,,,,,,,,,,,,,,,,,,,,
@@ -29,13 +29,13 @@ Second Round,2,South,7/10-2/15,,,,,,,,,,,,,,,,,,,,
 Sweet 16,3,South,1/16-8/9 vs 5/12-4/13,,,,,,,,,,,,,,,,,,,,
 Sweet 16,3,South,6/11-3/14 vs 7/10-2/15,,,,,,,,,,,,,,,,,,,,
 Elite 8,4,South,regional final,,,,,,,,,,,,,,,,,,,,
-First Round,1,West,1-16,1,Arizona,16,LIU,,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona
+First Round,1,West,1-16,1,Arizona,16,Long Island,,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona,Arizona
 First Round,1,West,8-9,8,Villanova,9,Utah St.,,Utah St.,Utah St.,Villanova,Utah St.,Utah St.,Utah St.,Utah St.,Utah St.,Utah St.,Utah St.,Utah St.,Villanova,Villanova,Villanova,Villanova
 First Round,1,West,5-12,5,Wisconsin,12,High Point,,Wisconsin,Wisconsin,Wisconsin,Wisconsin,Wisconsin,Wisconsin,Wisconsin,High Point,Wisconsin,High Point,Wisconsin,Wisconsin,Wisconsin,Wisconsin,Wisconsin
 First Round,1,West,4-13,4,Arkansas,13,Hawaii,,Hawaii,Arkansas,Arkansas,Arkansas,Arkansas,Arkansas,Arkansas,Arkansas,Arkansas,Arkansas,Arkansas,Hawaii,Arkansas,Arkansas,Arkansas
 First Round,1,West,6-11,6,BYU,11,Texas,,Texas,Texas,BYU,Texas,BYU,BYU,Texas,Texas,BYU,Texas,BYU,Texas,BYU,BYU,BYU
-First Round,1,West,3-14,3,Gonzaga,14,KENSAW,,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,KENSAW,KENSAW,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga
-First Round,1,West,7-10,7,Miami,10,Missouri,,Missouri,Missouri,Missouri,Missouri,Miami,Miami,Missouri,Miami,Miami,Miami,Missouri,Missouri,Missouri,Missouri,Miami
+First Round,1,West,3-14,3,Gonzaga,14,Kennesaw St.,,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Kennesaw St.,Kennesaw St.,Gonzaga,Gonzaga,Gonzaga,Gonzaga,Gonzaga
+First Round,1,West,7-10,7,Miami FL,10,Missouri,,Missouri,Missouri,Missouri,Missouri,Miami FL,Miami FL,Missouri,Miami FL,Miami FL,Miami FL,Missouri,Missouri,Missouri,Missouri,Miami FL
 First Round,1,West,2-15,2,Purdue,15,Queens,,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Purdue,Queens,Purdue
 Second Round,2,West,1/16-8/9,,,,,,,,,,,,,,,,,,,,
 Second Round,2,West,5/12-4/13,,,,,,,,,,,,,,,,,,,,
@@ -48,7 +48,7 @@ First Round,1,Midwest,1-16,1,Michigan,16,Howard,,Howard,Michigan,Michigan,Michig
 First Round,1,Midwest,8-9,8,Georgia,9,Saint Louis,,Georgia,Georgia,Saint Louis,Georgia,Georgia,Georgia,Saint Louis,Saint Louis,Georgia,Georgia,Georgia,Georgia,Saint Louis,Georgia,Georgia
 First Round,1,Midwest,5-12,5,Texas Tech,12,Akron,,Akron,Texas Tech,Texas Tech,Texas Tech,Texas Tech,Texas Tech,Akron,Texas Tech,Texas Tech,Akron,Texas Tech,Akron,Texas Tech,Akron,Texas Tech
 First Round,1,Midwest,4-13,4,Alabama,13,Hofstra,,Alabama,Alabama,Hofstra,Alabama,Alabama,Alabama,Alabama,Alabama,Hofstra,Alabama,Alabama,Hofstra,Alabama,Hofstra,Alabama
-First Round,1,Midwest,6-11,6,Tennessee,11,MIAOH,,MIAOH,MIAOH,Tennessee,Tennessee,Tennessee,Tennessee,Tennessee,MIAOH,Tennessee,MIAOH,Tennessee,MIAOH,Tennessee,Tennessee,Tennessee
+First Round,1,Midwest,6-11,6,Tennessee,11,Miami OH,,Miami OH,Miami OH,Tennessee,Tennessee,Tennessee,Tennessee,Tennessee,Miami OH,Tennessee,Miami OH,Tennessee,Miami OH,Tennessee,Tennessee,Tennessee
 First Round,1,Midwest,3-14,3,Virginia,14,Wright St.,,Virginia,Virginia,Wright St.,Virginia,Virginia,Virginia,Virginia,Virginia,Virginia,Virginia,Virginia,Virginia,Virginia,Wright St.,Virginia
 First Round,1,Midwest,7-10,7,Kentucky,10,Santa Clara,,Santa Clara,Santa Clara,Santa Clara,Santa Clara,Kentucky,Santa Clara,Kentucky,Santa Clara,Santa Clara,Santa Clara,Kentucky,Santa Clara,Santa Clara,Santa Clara,Santa Clara
 First Round,1,Midwest,2-15,2,Iowa St.,15,Tenn. State,,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Iowa St.,Tenn. State,Iowa St.
