@@ -512,6 +512,7 @@
       const SEED_BONUS_ROUNDS = [1, 2]; // rounds that get seed bonus
 
       const TIPOFFS = {
+        // ROUND 1
         "1-16": {
           East: "2026-03-19T19:00:00Z",
           South: "2026-03-21T01:25:00Z",
@@ -560,8 +561,33 @@
           West: "2026-03-20T23:35:00Z",
           Midwest: "2026-03-20T18:50:00Z",
         },
+        // ROUND 2
+        "1/16-8/9": {
+          East: "2026-03-21T21:15:00Z",
+          South: "2026-03-22T23:10:00Z",
+          West: "2026-03-22T23:50:00Z",
+          Midwest: "2026-03-21T16:10:00Z",
+        },
+        "5/12-4/13": {
+          East: "2026-03-22T21:15:00Z",
+          South: "2026-03-22T00:45:00Z",
+          West: "2026-03-22T01:45:00Z",
+          Midwest: "2026-03-23T01:45:00Z",
+        },
+        "6/11-3/14": {
+          East: "2026-03-21T18:48:00Z",
+          South: "2026-03-21T23:50:00Z",
+          West: "2026-03-21T23:10:00Z",
+          Midwest: "2026-03-22T22:10:00Z",
+        },
+        "7/10-2/15": {
+          East: "2026-03-23T00:45:00Z",
+          South: "2026-03-21T22:10:00Z",
+          West: "2026-03-22T16:10:00Z",
+          Midwest: "2026-03-22T18:45:00Z",
+        },
       };
-      const LIVE_MS = 2.5 * 60 * 60 * 1000;
+      const LIVE_MS = 2.5 * 60 * 60 * 1000; // just an estimate for ~2.5 hours after tipoff
 
       function gameStatus(slot, region) {
         const byRegion = TIPOFFS[slot];
@@ -723,7 +749,7 @@
         const otPillHtml = otp
           .map(([p, v]) => {
             const pts = potentialPts(row.round_num, v, DATA);
-            return `<span class="pill other">${p}→${v}<span class="pts"> ${pts}pt</span></span>`;
+            return `<span class="pill other">${p}: ${v}</span>`;
           })
           .join("");
 
@@ -733,19 +759,19 @@
       ${timeLabel}
     </div>
     <div class="team-row">
-      <div class="team-label">${row.team1} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">${pts1}pts</span></div>
+      <div class="team-label">${row.team1} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts1}pts</span></div>
       <div class="bar-bg"><div class="bar-fill t1" style="width:${t1pct}%">${t1pct > 10 ? t1pct + "%" : ""}</div></div>
       <div class="pills">${pillHtml(t1p, "t1")}</div>
     </div>
     <div class="team-row">
-      <div class="team-label">${row.team2} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">${pts2}pts</span></div>
+      <div class="team-label">${row.team2} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts2}pts</span></div>
       <div class="bar-bg"><div class="bar-fill t2" style="width:${t2pct}%">${t2pct > 10 ? t2pct + "%" : ""}</div></div>
       <div class="pills">${pillHtml(t2p, "t2")}</div>
     </div>
     ${
       otp.length
         ? `<div class="team-row">
-      <div class="team-label">Other <span>${otp.length}</span></div>
+      <div class="team-label">Other</div>
       <div class="bar-bg"><div class="bar-fill other" style="width:${otpct}%">${otpct > 10 ? otpct + "%" : ""}</div></div>
       <div class="pills">${otPillHtml}</div>
     </div>`
@@ -857,7 +883,7 @@
           <span class="matchup-label">${roundLabel} · ${row.slot}</span>
           <span>
             <span class="pick-val ${pickCls}">${pick}</span>
-            <span class="pick-pts">${pts}pt</span>
+            <span class="pick-pts pick-val ${pickCls}">${pts}pt</span>
           </span>
         </div>`;
             }
@@ -909,8 +935,22 @@
           DATA = rows;
           PEOPLE = people;
           activePerson = people[0];
+
+          // set active round to highest round with results + 1
+          const roundsWithResults = [
+            ...new Set(rows.filter((r) => r.result).map((r) => r.round_num)),
+          ];
+          const maxWithResult = roundsWithResults.length
+            ? Math.max(...roundsWithResults)
+            : 0;
+          const availableRounds = [...new Set(rows.map((r) => r.round_num))];
+          const maxAvailable = Math.max(...availableRounds);
+          activeRound = Math.min(maxWithResult + 1, maxAvailable);
+
+          const activeRoundLabel =
+            ROUNDS.find((r) => r.num === activeRound)?.label || "Round 1";
           document.getElementById("metaLine").textContent =
-            `${people.length} players · First Round`;
+            `${people.length} players · We're in ${activeRoundLabel}`;
           buildRoundTabs();
           renderBracket();
           buildPersonGrid();
