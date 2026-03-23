@@ -443,6 +443,91 @@
         font-family: var(--mono);
         font-size: 13px;
       }
+      /* Leaderboard */
+      .lb-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .lb-table th {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-3);
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .lb-table th.right {
+        text-align: right;
+      }
+      .lb-table td {
+        padding: 11px 14px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+      .lb-table tr:last-child td {
+        border-bottom: none;
+      }
+      .lb-table tr.top td {
+        font-weight: 600;
+      }
+      .lb-rank {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text-3);
+        width: 32px;
+      }
+      .lb-name {
+        font-weight: 500;
+      }
+      .lb-pts {
+        font-family: var(--mono);
+        text-align: right;
+        font-size: 14px;
+      }
+      .lb-live {
+        font-family: var(--mono);
+        text-align: right;
+        font-size: 13px;
+        color: var(--live);
+      }
+      .lb-live.none {
+        color: var(--text-3);
+      }
+      .lb-proj {
+        font-family: var(--mono);
+        text-align: right;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .lb-game-row {
+        background: var(--bg);
+      }
+      .lb-game-row td {
+        padding: 6px 14px 6px 32px;
+        font-size: 12px;
+        font-family: var(--mono);
+        color: var(--text-2);
+        border-bottom: 1px solid var(--border);
+      }
+      .live-badge {
+        display: inline-block;
+        background: var(--live);
+        color: white;
+        font-size: 10px;
+        font-family: var(--mono);
+        padding: 1px 6px;
+        border-radius: 99px;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
       .error {
         text-align: center;
         padding: 2rem;
@@ -473,6 +558,9 @@
         <button class="tab" onclick="switchTab('person', this)">
           By person
         </button>
+        <button class="tab" onclick="switchTab('leaderboard', this)">
+          Leaderboard
+        </button>
       </div>
 
       <div id="tab-bracket">
@@ -502,6 +590,39 @@
         </div>
         <div id="personView"><div class="loading">Loading…</div></div>
       </div>
+
+      <div id="tab-leaderboard" style="display: none">
+        <div
+          id="lbStatus"
+          style="
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-3);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <span id="lbStatusText">Loading live scores…</span>
+          <button
+            onclick="refreshLeaderboard()"
+            style="
+              font-family: var(--mono);
+              font-size: 11px;
+              padding: 3px 10px;
+              border: 1px solid var(--border-strong);
+              border-radius: 99px;
+              background: transparent;
+              cursor: pointer;
+              color: var(--text-2);
+            "
+          >
+            ↻ Refresh
+          </button>
+        </div>
+        <div id="lbView"><div class="loading">Loading…</div></div>
+      </div>
     </div>
 
     <script>
@@ -511,89 +632,88 @@
       const BASE_PTS = [0, 2, 3, 5, 8, 13, 21]; // indexed by round_num
       const SEED_BONUS_ROUNDS = [1, 2]; // rounds that get seed bonus
 
-      const TIPOFFS = {
-        // ROUND 1
-        "1-16": {
-          East: "2026-03-19T19:00:00Z",
-          South: "2026-03-21T01:25:00Z",
-          West: "2026-03-20T17:35:00Z",
-          Midwest: "2026-03-19T23:30:00Z",
-        },
-        "8-9": {
-          East: "2026-03-19T16:15:00Z",
-          South: "2026-03-20T22:50:00Z",
-          West: "2026-03-20T20:10:00Z",
-          Midwest: "2026-03-20T02:10:00Z",
-        },
-        "5-12": {
-          East: "2026-03-20T23:10:00Z",
-          South: "2026-03-19T19:15:00Z",
-          West: "2026-03-19T17:50:00Z",
-          Midwest: "2026-03-20T16:40:00Z",
-        },
-        "4-13": {
-          East: "2026-03-21T01:45:00Z",
-          South: "2026-03-19T16:40:00Z",
-          West: "2026-03-19T20:27:00Z",
-          Midwest: "2026-03-20T19:15:00Z",
-        },
-        "6-11": {
-          East: "2026-03-19T17:30:00Z",
-          South: "2026-03-19T22:50:00Z",
-          West: "2026-03-19T23:35:00Z",
-          Midwest: "2026-03-20T20:25:00Z",
-        },
-        "3-14": {
-          East: "2026-03-19T20:27:00Z",
-          South: "2026-03-20T02:00:00Z",
-          West: "2026-03-20T02:24:00Z",
-          Midwest: "2026-03-20T17:50:00Z",
-        },
-        "7-10": {
-          East: "2026-03-20T23:25:00Z",
-          South: "2026-03-19T23:35:00Z",
-          West: "2026-03-21T02:10:00Z",
-          Midwest: "2026-03-20T16:15:00Z",
-        },
-        "2-15": {
-          East: "2026-03-21T02:00:00Z",
-          South: "2026-03-20T02:15:00Z",
-          West: "2026-03-20T23:35:00Z",
-          Midwest: "2026-03-20T18:50:00Z",
-        },
-        // ROUND 2
-        "1/16-8/9": {
-          East: "2026-03-21T21:15:00Z",
-          South: "2026-03-22T23:10:00Z",
-          West: "2026-03-22T23:50:00Z",
-          Midwest: "2026-03-21T16:10:00Z",
-        },
-        "5/12-4/13": {
-          East: "2026-03-22T21:15:00Z",
-          South: "2026-03-22T00:45:00Z",
-          West: "2026-03-22T01:45:00Z",
-          Midwest: "2026-03-23T01:45:00Z",
-        },
-        "6/11-3/14": {
-          East: "2026-03-21T18:48:00Z",
-          South: "2026-03-21T23:50:00Z",
-          West: "2026-03-21T23:10:00Z",
-          Midwest: "2026-03-22T22:10:00Z",
-        },
-        "7/10-2/15": {
-          East: "2026-03-23T00:45:00Z",
-          South: "2026-03-21T22:10:00Z",
-          West: "2026-03-22T16:10:00Z",
-          Midwest: "2026-03-22T18:45:00Z",
-        },
-      };
+      // const TIPOFFS = {
+      //   // ROUND 1
+      //   "1-16": {
+      //     East: "2026-03-19T19:00:00Z",
+      //     South: "2026-03-21T01:25:00Z",
+      //     West: "2026-03-20T17:35:00Z",
+      //     Midwest: "2026-03-19T23:30:00Z",
+      //   },
+      //   "8-9": {
+      //     East: "2026-03-19T16:15:00Z",
+      //     South: "2026-03-20T22:50:00Z",
+      //     West: "2026-03-20T20:10:00Z",
+      //     Midwest: "2026-03-20T02:10:00Z",
+      //   },
+      //   "5-12": {
+      //     East: "2026-03-20T23:10:00Z",
+      //     South: "2026-03-19T19:15:00Z",
+      //     West: "2026-03-19T17:50:00Z",
+      //     Midwest: "2026-03-20T16:40:00Z",
+      //   },
+      //   "4-13": {
+      //     East: "2026-03-21T01:45:00Z",
+      //     South: "2026-03-19T16:40:00Z",
+      //     West: "2026-03-19T20:27:00Z",
+      //     Midwest: "2026-03-20T19:15:00Z",
+      //   },
+      //   "6-11": {
+      //     East: "2026-03-19T17:30:00Z",
+      //     South: "2026-03-19T22:50:00Z",
+      //     West: "2026-03-19T23:35:00Z",
+      //     Midwest: "2026-03-20T20:25:00Z",
+      //   },
+      //   "3-14": {
+      //     East: "2026-03-19T20:27:00Z",
+      //     South: "2026-03-20T02:00:00Z",
+      //     West: "2026-03-20T02:24:00Z",
+      //     Midwest: "2026-03-20T17:50:00Z",
+      //   },
+      //   "7-10": {
+      //     East: "2026-03-20T23:25:00Z",
+      //     South: "2026-03-19T23:35:00Z",
+      //     West: "2026-03-21T02:10:00Z",
+      //     Midwest: "2026-03-20T16:15:00Z",
+      //   },
+      //   "2-15": {
+      //     East: "2026-03-21T02:00:00Z",
+      //     South: "2026-03-20T02:15:00Z",
+      //     West: "2026-03-20T23:35:00Z",
+      //     Midwest: "2026-03-20T18:50:00Z",
+      //   },
+      //   // ROUND 2
+      //   "1/16-8/9": {
+      //     East: "2026-03-21T21:15:00Z",
+      //     South: "2026-03-22T23:10:00Z",
+      //     West: "2026-03-22T23:50:00Z",
+      //     Midwest: "2026-03-21T16:10:00Z",
+      //   },
+      //   "5/12-4/13": {
+      //     East: "2026-03-22T21:15:00Z",
+      //     South: "2026-03-22T00:45:00Z",
+      //     West: "2026-03-22T01:45:00Z",
+      //     Midwest: "2026-03-23T01:45:00Z",
+      //   },
+      //   "6/11-3/14": {
+      //     East: "2026-03-21T18:48:00Z",
+      //     South: "2026-03-21T23:50:00Z",
+      //     West: "2026-03-21T23:10:00Z",
+      //     Midwest: "2026-03-22T22:10:00Z",
+      //   },
+      //   "7/10-2/15": {
+      //     East: "2026-03-23T00:45:00Z",
+      //     South: "2026-03-21T22:10:00Z",
+      //     West: "2026-03-22T16:10:00Z",
+      //     Midwest: "2026-03-22T18:45:00Z",
+      //   },
+      // };
+
       const LIVE_MS = 2.5 * 60 * 60 * 1000; // just an estimate for ~2.5 hours after tipoff
 
       function gameStatus(slot, region) {
-        const byRegion = TIPOFFS[slot];
-        if (!byRegion)
-          return { status: "upcoming", displayTime: "TBD", tipoff: null };
-        const iso = byRegion[region];
+        const row = DATA.find((r) => r.slot === slot && r.region === region);
+        const iso = row?.game_time;
         if (!iso)
           return { status: "upcoming", displayTime: "TBD", tipoff: null };
         const tipoff = new Date(iso);
@@ -609,6 +729,27 @@
         });
         return { status, displayTime, tipoff };
       }
+
+      // function gameStatus(slot, region) {
+      //   const byRegion = TIPOFFS[slot];
+      //   if (!byRegion)
+      //     return { status: "upcoming", displayTime: "TBD", tipoff: null };
+      //   const iso = byRegion[region];
+      //   if (!iso)
+      //     return { status: "upcoming", displayTime: "TBD", tipoff: null };
+      //   const tipoff = new Date(iso);
+      //   const now = new Date();
+      //   const ms = now - tipoff;
+      //   const status = ms < 0 ? "upcoming" : ms < LIVE_MS ? "live" : "final";
+      //   const displayTime = tipoff.toLocaleString([], {
+      //     weekday: "short",
+      //     month: "short",
+      //     day: "numeric",
+      //     hour: "numeric",
+      //     minute: "2-digit",
+      //   });
+      //   return { status, displayTime, tipoff };
+      // }
 
       // ── CSV parser ────────────────────────────────────────────────────────────────
       function parseCSV(text) {
@@ -923,6 +1064,230 @@
           t === "bracket" ? "" : "none";
         document.getElementById("tab-person").style.display =
           t === "person" ? "" : "none";
+        document.getElementById("tab-leaderboard").style.display =
+          t === "leaderboard" ? "" : "none";
+        if (t === "leaderboard") refreshLeaderboard();
+      }
+
+      // ── Leaderboard & live scores ─────────────────────────────────────────────────
+      const ESPN_API =
+        "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard";
+      const REFRESH_INTERVAL = 60000;
+      let lbTimer = null;
+      let liveGames = [];
+
+      function winProb(margin, minsLeft) {
+        if (minsLeft <= 0) return margin > 0 ? 1 : margin < 0 ? 0 : 0.5;
+        const x = (margin / Math.sqrt(minsLeft + 1)) * 1.5;
+        return 1 / (1 + Math.exp(-x));
+      }
+
+      const TEAM_MAP = {
+        "Mich. St.": "Michigan St.",
+        "Michigan St.": "Michigan St.",
+        MSU: "Michigan St.",
+        "N. Dakota St.": "N. Dakota St.",
+        NDSU: "N. Dakota St.",
+        "N. Iowa": "N. Iowa",
+        "Northern Iowa": "N. Iowa",
+        UNI: "N. Iowa",
+        "Miami (OH)": "Miami OH",
+        "Mia (OH)": "Miami OH",
+        CBU: "Cal Baptist",
+        "Kennesaw St.": "Kennesaw St.",
+        "Kennesaw State": "Kennesaw St.",
+        "Tenn. St.": "Tenn. State",
+        "Tennessee St.": "Tenn. State",
+        "St. John's": "St. John's",
+        SJU: "St. John's",
+        PVAMU: "Prairie View",
+        "Prairie View": "Prairie View",
+        "Saint Mary's": "St. Mary's",
+        "S. Florida": "South Florida",
+        USF: "South Florida",
+        "N. Carolina": "N. Carolina",
+        UNC: "N. Carolina",
+        "Iowa St.": "Iowa St.",
+        "Iowa State": "Iowa St.",
+        "Utah St.": "Utah St.",
+        "Utah State": "Utah St.",
+      };
+
+      function normalizeTeam(name) {
+        if (!name) return name;
+        return TEAM_MAP[name] || name;
+      }
+
+      function computeEarned(person) {
+        let total = 0;
+        for (const row of DATA) {
+          if (!row.result) continue;
+          const pick = row.picks[person];
+          if (!pick) continue;
+          total += earnedPts(row.round_num, pick, row.result, DATA);
+        }
+        return total;
+      }
+
+      function computeLiveDelta(person, liveGamesList) {
+        let delta = 0;
+        for (const lg of liveGamesList) {
+          const csvRow = DATA.find((r) => {
+            const t1 = normalizeTeam(lg.team1Name);
+            const t2 = normalizeTeam(lg.team2Name);
+            return (
+              (r.team1 === t1 && r.team2 === t2) ||
+              (r.team1 === t2 && r.team2 === t1)
+            );
+          });
+          if (!csvRow) continue;
+          const pick = csvRow.picks[person];
+          if (!pick) continue;
+          const pts = potentialPts(csvRow.round_num, pick, DATA);
+          const t1 = normalizeTeam(lg.team1Name);
+          const prob =
+            pick === t1
+              ? lg.prob1
+              : pick === normalizeTeam(lg.team2Name)
+                ? lg.prob2
+                : 0;
+          delta += prob * pts;
+        }
+        return delta;
+      }
+
+      async function fetchLiveGames() {
+        const resp = await fetch(ESPN_API);
+        if (!resp.ok) throw new Error(`ESPN API ${resp.status}`);
+        const data = await resp.json();
+        const events = data?.events || [];
+        const live = [];
+        for (const event of events) {
+          const status = event.status;
+          if (status?.type?.state !== "in") continue;
+          const comp = event.competitions?.[0];
+          if (!comp) continue;
+          const [c1, c2] = comp.competitors;
+          if (!c1 || !c2) continue;
+          const score1 = parseInt(c1.score) || 0;
+          const score2 = parseInt(c2.score) || 0;
+          const clock = status.displayClock || "";
+          const period = status.period || 1;
+          const [m, s] = clock.split(":").map(Number);
+          let minsLeft = (m || 0) + (s || 0) / 60;
+          if (period === 1) minsLeft += 20;
+          if (period > 2) minsLeft = Math.min(minsLeft, 5);
+          const margin = score1 - score2;
+          const prob1 = winProb(margin, minsLeft);
+          live.push({
+            title: event.shortName || event.name,
+            team1Name: c1.team?.shortDisplayName || c1.team?.displayName,
+            team2Name: c2.team?.shortDisplayName || c2.team?.displayName,
+            score1,
+            score2,
+            clock,
+            period:
+              period === 1
+                ? "1st half"
+                : period === 2
+                  ? "2nd half"
+                  : `OT${period - 2}`,
+            prob1,
+            prob2: 1 - prob1,
+          });
+        }
+        return live;
+      }
+
+      async function refreshLeaderboard() {
+        if (!DATA.length) return;
+        const statusEl = document.getElementById("lbStatusText");
+        statusEl.textContent = "Fetching live scores…";
+        let corsError = false;
+        try {
+          liveGames = await fetchLiveGames();
+          const now = new Date().toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          });
+          statusEl.textContent =
+            liveGames.length > 0
+              ? `● ${liveGames.length} game${liveGames.length > 1 ? "s" : ""} live · updated ${now}`
+              : `No live games · updated ${now}`;
+        } catch (e) {
+          corsError =
+            e.message.includes("fetch") ||
+            e.message.includes("CORS") ||
+            e.message.includes("NetworkError");
+          statusEl.textContent = corsError
+            ? `⚠ ESPN API blocked — showing earned pts only`
+            : `⚠ Could not fetch scores: ${e.message}`;
+          liveGames = [];
+        }
+        renderLeaderboard(corsError);
+        clearTimeout(lbTimer);
+        if (liveGames.length > 0)
+          lbTimer = setTimeout(refreshLeaderboard, REFRESH_INTERVAL);
+      }
+
+      function renderLeaderboard(corsError) {
+        const hasLive = liveGames.length > 0;
+        const rows = PEOPLE.map((person) => {
+          const earned = computeEarned(person);
+          const liveDelta = hasLive
+            ? computeLiveDelta(person, liveGames)
+            : null;
+          const proj = liveDelta !== null ? earned + liveDelta : null;
+          return { person, earned, liveDelta, proj };
+        }).sort((a, b) => (b.proj ?? b.earned) - (a.proj ?? a.earned));
+
+        let html = `<table class="lb-table"><thead><tr>
+          <th class="lb-rank">#</th>
+          <th>Player</th>
+          <th class="right">Earned</th>
+          ${hasLive ? `<th class="right">Live +</th><th class="right">Projected</th>` : ""}
+        </tr></thead><tbody>`;
+
+        rows.forEach(({ person, earned, liveDelta, proj }, i) => {
+          const rank = i + 1;
+          const liveStr = liveDelta !== null ? `+${liveDelta.toFixed(1)}` : "—";
+          const projStr = proj !== null ? proj.toFixed(1) : "—";
+          const liveClass = liveDelta !== null && liveDelta > 0 ? "" : "none";
+          html += `<tr class="${rank === 1 ? "top" : ""}">
+            <td class="lb-rank">${rank}</td>
+            <td class="lb-name">${person}</td>
+            <td class="lb-pts">${earned}</td>
+            ${hasLive ? `<td class="lb-live ${liveClass}">${liveStr}</td><td class="lb-proj">${projStr}</td>` : ""}
+          </tr>`;
+          if (hasLive) {
+            for (const lg of liveGames) {
+              const csvRow = DATA.find((r) => {
+                const t1 = normalizeTeam(lg.team1Name),
+                  t2 = normalizeTeam(lg.team2Name);
+                return (
+                  (r.team1 === t1 && r.team2 === t2) ||
+                  (r.team1 === t2 && r.team2 === t1)
+                );
+              });
+              if (!csvRow) continue;
+              const pick = csvRow.picks[person];
+              if (!pick) continue;
+              const pts = potentialPts(csvRow.round_num, pick, DATA);
+              const t1 = normalizeTeam(lg.team1Name);
+              const prob = pick === t1 ? lg.prob1 : 1 - lg.prob1;
+              const exp = (prob * pts).toFixed(1);
+              html += `<tr class="lb-game-row"><td colspan="${hasLive ? 5 : 3}">
+                <span class="live-badge">LIVE</span>
+                ${lg.score1}–${lg.score2} ${lg.period} ${lg.clock} · picked <strong>${pick}</strong> · ${Math.round(prob * 100)}% win · ${exp}pts expected
+              </td></tr>`;
+            }
+          }
+        });
+
+        html += `</tbody></table>`;
+        if (corsError)
+          html += `<div style="margin-top:1rem;font-family:var(--mono);font-size:12px;color:var(--text-3);text-align:center">Live projections unavailable — ESPN API requires a CORS proxy. Showing earned points only.</div>`;
+        document.getElementById("lbView").innerHTML = html;
       }
 
       // ── Load CSV ──────────────────────────────────────────────────────────────────
