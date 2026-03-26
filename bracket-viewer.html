@@ -8,6 +8,8 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
     <style>
       :root {
         --bg: #f7f6f2;
@@ -528,6 +530,10 @@
         margin-right: 6px;
         vertical-align: middle;
       }
+      /* History chart */
+      #historyChart {
+        width: 100% !important;
+      }
       .error {
         text-align: center;
         padding: 2rem;
@@ -560,6 +566,9 @@
         </button>
         <button class="tab" onclick="switchTab('leaderboard', this)">
           Leaderboard
+        </button>
+        <button class="tab" onclick="switchTab('history', this)">
+          History
         </button>
       </div>
 
@@ -622,6 +631,29 @@
           </button>
         </div>
         <div id="lbView"><div class="loading">Loading…</div></div>
+      </div>
+
+      <div id="tab-history" style="display: none">
+        <div
+          style="
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-3);
+            margin-bottom: 1rem;
+          "
+        >
+          Rank after each completed game · 1st place at top
+        </div>
+        <div
+          style="
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+          "
+        >
+          <canvas id="historyChart"></canvas>
+        </div>
       </div>
     </div>
 
@@ -847,9 +879,9 @@
 
         if (!hasBothTeams) {
           return `<div class="tbd-card">
-      <span>${row.slot}</span>
-      <span>matchup TBD · ${ptsLabel}</span>
-    </div>`;
+          <span>${row.slot}</span>
+          <span>matchup TBD · ${ptsLabel}</span>
+        </div>`;
         }
 
         const picks = row.picks;
@@ -895,30 +927,30 @@
           .join("");
 
         return `<div class="game ${status === "live" ? "live" : status === "final" ? "final" : ""}">
-    <div class="game-top">
-      <div class="game-name">${seedLabel1}${row.team1} <span style="color:var(--text-3);font-weight:400">vs</span> ${seedLabel2}${row.team2}</div>
-      ${timeLabel}
-    </div>
-    <div class="team-row">
-      <div class="team-label">${row.team1} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts1}pts</span></div>
-      <div class="bar-bg"><div class="bar-fill t1" style="width:${t1pct}%">${t1pct > 10 ? t1pct + "%" : ""}</div></div>
-      <div class="pills">${pillHtml(t1p, "t1")}</div>
-    </div>
-    <div class="team-row">
-      <div class="team-label">${row.team2} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts2}pts</span></div>
-      <div class="bar-bg"><div class="bar-fill t2" style="width:${t2pct}%">${t2pct > 10 ? t2pct + "%" : ""}</div></div>
-      <div class="pills">${pillHtml(t2p, "t2")}</div>
-    </div>
-    ${
-      otp.length
-        ? `<div class="team-row">
-      <div class="team-label">Other</div>
-      <div class="bar-bg"><div class="bar-fill other" style="width:${otpct}%">${otpct > 10 ? otpct + "%" : ""}</div></div>
-      <div class="pills">${otPillHtml}</div>
-    </div>`
-        : ""
-    }
-  </div>`;
+        <div class="game-top">
+          <div class="game-name">${seedLabel1}${row.team1} <span style="color:var(--text-3);font-weight:400">vs</span> ${seedLabel2}${row.team2}</div>
+          ${timeLabel}
+        </div>
+        <div class="team-row">
+          <div class="team-label">${row.team1} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts1}pts</span></div>
+          <div class="bar-bg"><div class="bar-fill t1" style="width:${t1pct}%">${t1pct > 10 ? t1pct + "%" : ""}</div></div>
+          <div class="pills">${pillHtml(t1p, "t1")}</div>
+        </div>
+        <div class="team-row">
+          <div class="team-label">${row.team2} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts2}pts</span></div>
+          <div class="bar-bg"><div class="bar-fill t2" style="width:${t2pct}%">${t2pct > 10 ? t2pct + "%" : ""}</div></div>
+          <div class="pills">${pillHtml(t2p, "t2")}</div>
+        </div>
+        ${
+          otp.length
+            ? `<div class="team-row">
+          <div class="team-label">Other</div>
+          <div class="bar-bg"><div class="bar-fill other" style="width:${otpct}%">${otpct > 10 ? otpct + "%" : ""}</div></div>
+          <div class="pills">${otPillHtml}</div>
+        </div>`
+            : ""
+        }
+      </div>`;
       }
 
       function renderBracket() {
@@ -939,35 +971,36 @@
               ["East/South", "West/Midwest"].indexOf(b.region),
           );
           html = `<div class="bracket">
-      ${sorted
-        .map(
-          (r) => `<div class="quadrant">
-        <div class="q-header"><span class="q-label national">${r.region}</span></div>
-        ${gameCard(r)}
-      </div>`,
-        )
-        .join("")}
-    </div>`;
+          ${sorted
+            .map(
+              (r) => `<div class="quadrant">
+            <div class="q-header"><span class="q-label national">${r.region}</span></div>
+            ${gameCard(r)}
+          </div>`,
+            )
+            .join("")}
+        </div>`;
         } else {
           // Sort: live first, then upcoming by tipoff, then final — within each quadrant
           const STATUS_ORDER = { live: 0, upcoming: 1, final: 2 };
           html = `<div class="bracket">
-      ${REGION_ORDER.map((region) => {
-        const games = roundRows
-          .filter((r) => r.region === region)
-          .sort((a, b) => {
-            const sa = gameStatus(a.slot, a.region),
-              sb = gameStatus(b.slot, b.region);
-            const so =
-              (STATUS_ORDER[sa.status] ?? 3) - (STATUS_ORDER[sb.status] ?? 3);
-            return so !== 0 ? so : (sa.tipoff || 0) - (sb.tipoff || 0);
-          });
-        return `<div class="quadrant">
-          <div class="q-header"><span class="q-label ${REGION_CLS[region]}">${region}</span></div>
-          ${games.map(gameCard).join("") || '<div class="tbd-card">Picks TBA</div>'}
+          ${REGION_ORDER.map((region) => {
+            const games = roundRows
+              .filter((r) => r.region === region)
+              .sort((a, b) => {
+                const sa = gameStatus(a.slot, a.region),
+                  sb = gameStatus(b.slot, b.region);
+                const so =
+                  (STATUS_ORDER[sa.status] ?? 3) -
+                  (STATUS_ORDER[sb.status] ?? 3);
+                return so !== 0 ? so : (sa.tipoff || 0) - (sb.tipoff || 0);
+              });
+            return `<div class="quadrant">
+              <div class="q-header"><span class="q-label ${REGION_CLS[region]}">${region}</span></div>
+              ${games.map(gameCard).join("") || '<div class="tbd-card">Picks TBA</div>'}
+            </div>`;
+          }).join("")}
         </div>`;
-      }).join("")}
-    </div>`;
         }
 
         document.getElementById("bracketView").innerHTML = html;
@@ -1021,12 +1054,12 @@
               const roundLabel =
                 ROUNDS.find((r) => r.num === row.round_num)?.label || "";
               html += `<div class="pick-row ${statusCls}">
-          <span class="matchup-label">${roundLabel} · ${row.slot}</span>
-          <span>
-            <span class="pick-val ${pickCls}">${pick}</span>
-            <span class="pick-pts pick-val ${pickCls}">+${pts}</span>
-          </span>
-        </div>`;
+              <span class="matchup-label">${roundLabel} · ${row.slot}</span>
+              <span>
+                <span class="pick-val ${pickCls}">${pick}</span>
+                <span class="pick-pts pick-val ${pickCls}">+${pts}</span>
+              </span>
+            </div>`;
             }
             html += `</div>`;
           }
@@ -1037,16 +1070,16 @@
         const ffRows = DATA.filter((r) => r.round_num === 5);
         if (ffRows.some((r) => r.picks[p])) {
           html += `<div style="margin-top:1px;background:var(--border);border-radius:var(--radius-lg);overflow:hidden">
-      <div class="person-quadrant" style="background:var(--bg)">
-        <div class="pq-header" style="color:#4a2d8a">Final Four</div>`;
+          <div class="person-quadrant" style="background:var(--bg)">
+            <div class="pq-header" style="color:#4a2d8a">Final Four</div>`;
           for (const row of ffRows) {
             const pick = row.picks[p];
             if (!pick) continue;
             const pts = potentialPts(row.round_num, pick, DATA);
             html += `<div class="pick-row">
-        <span class="matchup-label">${row.region}</span>
-        <span><span class="pick-val">${pick}</span><span class="pick-pts">${pts}pt</span></span>
-      </div>`;
+            <span class="matchup-label">${row.region}</span>
+            <span><span class="pick-val">${pick}</span><span class="pick-pts">${pts}pt</span></span>
+          </div>`;
           }
           html += `</div></div>`;
         }
@@ -1066,7 +1099,10 @@
           t === "person" ? "" : "none";
         document.getElementById("tab-leaderboard").style.display =
           t === "leaderboard" ? "" : "none";
+        document.getElementById("tab-history").style.display =
+          t === "history" ? "" : "none";
         if (t === "leaderboard") refreshLeaderboard();
+        if (t === "history") renderHistory();
       }
 
       // ── Leaderboard & live scores ─────────────────────────────────────────────────
@@ -1242,11 +1278,11 @@
         }).sort((a, b) => (b.proj ?? b.earned) - (a.proj ?? a.earned));
 
         let html = `<table class="lb-table"><thead><tr>
-          <th class="lb-rank">#</th>
-          <th>Player</th>
-          <th class="right">Earned</th>
-          ${hasLive ? `<th class="right">Live +</th><th class="right">Projected</th>` : ""}
-        </tr></thead><tbody>`;
+              <th class="lb-rank">#</th>
+              <th>Player</th>
+              <th class="right">Earned</th>
+              ${hasLive ? `<th class="right">Live +</th><th class="right">Projected</th>` : ""}
+            </tr></thead><tbody>`;
 
         rows.forEach(({ person, earned, liveDelta, proj }, i) => {
           const rank = i + 1;
@@ -1254,11 +1290,11 @@
           const projStr = proj !== null ? proj.toFixed(1) : "—";
           const liveClass = liveDelta !== null && liveDelta > 0 ? "" : "none";
           html += `<tr class="${rank === 1 ? "top" : ""}">
-            <td class="lb-rank">${rank}</td>
-            <td class="lb-name">${person}</td>
-            <td class="lb-pts">${earned}</td>
-            ${hasLive ? `<td class="lb-live ${liveClass}">${liveStr}</td><td class="lb-proj">${projStr}</td>` : ""}
-          </tr>`;
+                <td class="lb-rank">${rank}</td>
+                <td class="lb-name">${person}</td>
+                <td class="lb-pts">${earned}</td>
+                ${hasLive ? `<td class="lb-live ${liveClass}">${liveStr}</td><td class="lb-proj">${projStr}</td>` : ""}
+              </tr>`;
           if (hasLive) {
             for (const lg of liveGames) {
               const csvRow = DATA.find((r) => {
@@ -1277,17 +1313,254 @@
               const prob = pick === t1 ? lg.prob1 : 1 - lg.prob1;
               const exp = (prob * pts).toFixed(1);
               html += `<tr class="lb-game-row"><td colspan="${hasLive ? 5 : 3}">
-                <span class="live-badge">LIVE</span>
-                ${lg.score1}–${lg.score2} ${lg.period} ${lg.clock} · picked <strong>${pick}</strong> · ${Math.round(prob * 100)}% win · ${exp}pts expected
-              </td></tr>`;
+                    <span class="live-badge">LIVE</span>
+                    ${lg.score1}–${lg.score2} ${lg.period} ${lg.clock} · picked <strong>${pick}</strong> · ${Math.round(prob * 100)}% win · ${exp}pts expected
+                  </td></tr>`;
             }
           }
         });
 
         html += `</tbody></table>`;
         if (corsError)
-          html += `<div style="margin-top:1rem;font-family:var(--mono);font-size:12px;color:var(--text-3);text-align:center">Live projections unavailable — ESPN API requires a CORS proxy. Showing earned points only.</div>`;
+          html += `<div style="margin-top:1rem;font-family:var(--mono);font-size:12px;color:var(--text-3);text-align:center">Live projections unavailable — could not reach ESPN API. Showing earned points only.</div>`;
         document.getElementById("lbView").innerHTML = html;
+      }
+
+      // ── History (rank chart) ──────────────────────────────────────────────────────
+      let historyChartInstance = null;
+
+      // const PERSON_COLORS = [
+      //   "#2d4a8a",
+      //   "#8a2d2d",
+      //   "#1a6b3a",
+      //   "#6b3a1a",
+      //   "#6b1a6b",
+      //   "#1a5a6b",
+      //   "#8a7a1a",
+      //   "#3a1a6b",
+      //   "#1a6b5a",
+      //   "#6b3a3a",
+      //   "#3a6b1a",
+      //   "#1a3a6b",
+      //   "#6b1a3a",
+      //   "#3a6b6b",
+      //   "#6b4a1a",
+      // ];
+
+      const PERSON_COLORS = chroma.scale("Set2").mode("lch").colors(15);
+
+      function buildHistoryData() {
+        const played = DATA.filter((r) => r.result && r.game_time).sort(
+          (a, b) => new Date(a.game_time) - new Date(b.game_time),
+        );
+        if (!played.length) return null;
+
+        // compute cumulative score per person after each game
+        const runningScores = PEOPLE.map(() => 0);
+        const snapshots = []; // [{scores: [n,n,...], game}] after each game
+
+        for (const game of played) {
+          const deltas = PEOPLE.map((person, pi) => {
+            const pick = game.picks[person];
+            const earned = earnedPts(game.round_num, pick, game.result, DATA);
+            runningScores[pi] += earned;
+            return earned;
+          });
+          snapshots.push({ game, scores: [...runningScores], deltas });
+        }
+
+        // convert scores to ranks at each snapshot
+        // rank 1 = highest score; ties share the better rank
+        const rankSnapshots = snapshots.map(({ game, scores }) => {
+          const sorted = [...scores].sort((a, b) => b - a);
+          const ranks = scores.map((s) => sorted.indexOf(s) + 1);
+          return { game, ranks };
+        });
+
+        // x-axis labels — short form without seeds
+        const labels = played.map((r) => `${r.team1} vs ${r.team2}`);
+
+        // round boundaries
+        const roundBoundaries = [];
+        let lastRound = played[0].round_num;
+        played.forEach((g, i) => {
+          if (i > 0 && g.round_num !== lastRound) {
+            roundBoundaries.push({
+              index: i,
+              label: ROUNDS.find((r) => r.num === g.round_num)?.label || "",
+            });
+            lastRound = g.round_num;
+          }
+        });
+
+        // build one dataset per person
+        const datasets = PEOPLE.map((person, pi) => ({
+          label: person,
+          data: rankSnapshots.map(({ ranks }) => ranks[pi]),
+          borderColor: PERSON_COLORS[pi % PERSON_COLORS.length],
+          backgroundColor: PERSON_COLORS[pi % PERSON_COLORS.length] + "18",
+          borderWidth: 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          tension: 0.3,
+          fill: false,
+        }));
+
+        const allScores = snapshots.map((s) => s.scores);
+        return {
+          labels,
+          datasets,
+          roundBoundaries,
+          totalPeople: PEOPLE.length,
+          allScores,
+        };
+      }
+
+      function renderHistory() {
+        const built = buildHistoryData();
+        if (!built) {
+          document.getElementById("historyChart").parentElement.innerHTML =
+            '<div class="loading">No completed games yet.</div>';
+          return;
+        }
+
+        const { labels, datasets, roundBoundaries, totalPeople, allScores } =
+          built;
+
+        if (historyChartInstance) {
+          historyChartInstance.destroy();
+          historyChartInstance = null;
+        }
+
+        // rebuild canvas fresh to avoid stale state
+        const container = document.getElementById("historyChart").parentElement;
+        container.innerHTML = '<canvas id="historyChart"></canvas>';
+        const ctx = document.getElementById("historyChart").getContext("2d");
+
+        // plugin to draw round boundary lines + labels
+        const roundBoundaryPlugin = {
+          id: "roundBoundaries",
+          afterDraw(chart) {
+            const {
+              ctx: c,
+              scales: { x, y },
+            } = chart;
+            roundBoundaries.forEach(({ index, label }) => {
+              const xPos = x.getPixelForValue(index);
+              c.save();
+              c.beginPath();
+              c.moveTo(xPos, y.top);
+              c.lineTo(xPos, y.bottom);
+              c.strokeStyle = "rgba(0,0,0,0.12)";
+              c.lineWidth = 1;
+              c.setLineDash([4, 4]);
+              c.stroke();
+              c.setLineDash([]);
+              c.fillStyle = "rgba(0,0,0,0.3)";
+              c.font = "10px DM Mono, monospace";
+              c.textAlign = "left";
+              c.fillText(label, xPos + 4, y.top + 13);
+              c.restore();
+            });
+          },
+        };
+
+        historyChartInstance = new Chart(ctx, {
+          type: "line",
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  font: { family: "DM Mono, monospace", size: 11 },
+                  boxWidth: 12,
+                  padding: 16,
+                },
+              },
+              tooltip: {
+                usePointStyle: true,
+                displayColors: false,
+                backgroundColor: "#fff",
+                borderColor: "#e2e0d8",
+                borderWidth: 1,
+                titleColor: "#1a1916",
+                bodyColor: "#6b6860",
+                titleFont: { family: "DM Mono, monospace", size: 11 },
+                bodyFont: { family: "DM Mono, monospace", size: 11 },
+                padding: 10,
+                callbacks: {
+                  title(items) {
+                    return labels[items[0].dataIndex];
+                  },
+                  beforeBody(items) {
+                    // sort by rank ascending (leader first)
+                    items.sort((a, b) => a.raw - b.raw);
+                  },
+                  label(item) {
+                    const rank = item.raw;
+                    const suffix =
+                      rank === 1
+                        ? "st"
+                        : rank === 2
+                          ? "nd"
+                          : rank === 3
+                            ? "rd"
+                            : "th";
+                    const cumScore =
+                      allScores[item.dataIndex][item.datasetIndex];
+                    return ` ${item.dataset.label}: ${cumScore}`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  display: false,
+                  // font: { family: "DM Mono, monospace", size: 10 },
+                  // color: "#9b9890",
+                  // maxRotation: 45,
+                  // minRotation: 45,
+                  // autoSkip: false,
+                },
+                grid: { color: "#e2e0d8", lineWidth: 0.5 },
+              },
+              y: {
+                reverse: true, // rank 1 at the top
+                min: 1,
+                max: totalPeople,
+                ticks: {
+                  stepSize: 1,
+                  font: { family: "DM Mono, monospace", size: 11 },
+                  color: "#9b9890",
+                  callback(val) {
+                    const suffix =
+                      val === 1
+                        ? "st"
+                        : val === 2
+                          ? "nd"
+                          : val === 3
+                            ? "rd"
+                            : "th";
+                    return `${val}${suffix}`;
+                  },
+                },
+                grid: { color: "#e2e0d8", lineWidth: 0.5 },
+                title: {
+                  display: true,
+                  text: "rank",
+                  font: { family: "DM Mono, monospace", size: 11 },
+                  color: "#9b9890",
+                },
+              },
+            },
+          },
+          plugins: [roundBoundaryPlugin],
+        });
       }
 
       // ── Load CSV ──────────────────────────────────────────────────────────────────
@@ -1315,7 +1588,7 @@
           const activeRoundLabel =
             ROUNDS.find((r) => r.num === activeRound)?.label || "Round 1";
           document.getElementById("metaLine").textContent =
-            `${people.length} players · We're in ${activeRoundLabel}`;
+            `${people.length} players · We're in the ${activeRoundLabel}`;
           buildRoundTabs();
           renderBracket();
           buildPersonGrid();
