@@ -428,3 +428,6 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Ignore all PDF files
+*.pdf
