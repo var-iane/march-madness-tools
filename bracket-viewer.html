@@ -321,6 +321,17 @@
         opacity: 0.65;
         margin-left: 3px;
       }
+      .team-row.winner {
+        border-left: 3px solid #f0b429;
+        padding-left: 8px;
+        margin-left: -8px;
+      }
+      .team-row.loser {
+        opacity: 0.45;
+      }
+      .team-row.other-picks {
+        opacity: 0.45;
+      }
       /* Person tab */
       .person-grid {
         display: grid;
@@ -412,11 +423,11 @@
       .pick-row:last-child {
         border-bottom: none;
       }
-      .pick-row.final .pick-val.correct {
+      .pick-val.correct {
         color: var(--upcoming);
         font-weight: 600;
       }
-      .pick-row.final .pick-val.wrong {
+      .pick-val.wrong {
         color: var(--south);
         text-decoration: line-through;
         opacity: 0.6;
@@ -438,6 +449,103 @@
         margin-left: 6px;
         white-space: nowrap;
       }
+      /* bracket person view */
+      .bpv-wrap {
+        overflow-x: auto;
+      }
+      .bpv-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(80px, 1fr));
+        gap: 0;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        min-width: 480px;
+      }
+      .bpv-col {
+        background: var(--bg);
+        padding: 0.75rem 0.6rem;
+      }
+      .bpv-hdr {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-3);
+        padding-bottom: 6px;
+        margin-bottom: 4px;
+        border-bottom: 0.5px solid var(--border);
+      }
+      .bpv-hdr span {
+        display: block;
+        font-size: 9px;
+        font-weight: 400;
+      }
+      .bpv-pick {
+        font-size: 11px;
+        padding: 2px 0;
+        line-height: 1.5;
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+      }
+      .bpv-pick.correct {
+        color: var(--upcoming);
+        font-weight: 500;
+      }
+      .bpv-pick.wrong {
+        color: var(--south);
+        text-decoration: line-through;
+        opacity: 0.45;
+      }
+      .bpv-pick.pending {
+        color: var(--text);
+      }
+      .bpv-pick.champ {
+        color: #633806;
+        font-weight: 500;
+        background: #faeeda;
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: 0 -4px;
+      }
+      .bpv-pts {
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--text-3);
+        flex-shrink: 0;
+      }
+      .bpv-pick.correct .bpv-pts {
+        color: var(--upcoming);
+        opacity: 0.7;
+      }
+      .bpv-pick.champ .bpv-pts {
+        color: #854f0b;
+      }
+      .bpv-divider {
+        height: 6px;
+        border-top: 0.5px solid var(--border);
+        margin: 4px -0.6rem;
+        padding: 0 0.6rem;
+      }
+      .bpv-alive {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(80px, 1fr));
+        gap: 0;
+        background: var(--bg);
+        border-top: 1px solid var(--border);
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        padding: 6px 0;
+      }
+      .bpv-alive-cell {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--upcoming);
+        padding: 0 0.6rem;
+      }
+
       .loading {
         text-align: center;
         padding: 3rem;
@@ -593,10 +701,6 @@
 
       <div id="tab-person" style="display: none">
         <div class="person-grid" id="personGrid"></div>
-        <div class="champ-card">
-          <div class="champ-label">Champion pick</div>
-          <div class="champ-pick" id="champPick">—</div>
-        </div>
         <div id="personView"><div class="loading">Loading…</div></div>
       </div>
 
@@ -823,6 +927,26 @@
         return potentialPts(roundNum, pickedTeam, rows);
       }
 
+      function getRemainingTeams() {
+        // start with all R1 teams
+        const allTeams = new Set();
+        DATA.filter((r) => r.round_num === 1).forEach((r) => {
+          if (r.team1) allTeams.add(r.team1);
+          if (r.team2) allTeams.add(r.team2);
+        });
+
+        // remove any team that has lost a completed game
+        const eliminated = new Set();
+        DATA.forEach((r) => {
+          if (r.result && r.team1 && r.team2) {
+            const loser = r.team1 === r.result ? r.team2 : r.team1;
+            eliminated.add(loser);
+          }
+        });
+
+        return new Set([...allTeams].filter((t) => !eliminated.has(t)));
+      }
+
       // ── State ─────────────────────────────────────────────────────────────────────
       let DATA = [],
         PEOPLE = [],
@@ -926,24 +1050,30 @@
           })
           .join("");
 
+        const result = row.result;
+        const t1won = result === row.team1;
+        const t2won = result === row.team2;
+        const t1cls = result ? (t1won ? "winner" : "loser") : "";
+        const t2cls = result ? (t2won ? "winner" : "loser") : "";
+
         return `<div class="game ${status === "live" ? "live" : status === "final" ? "final" : ""}">
         <div class="game-top">
           <div class="game-name">${seedLabel1}${row.team1} <span style="color:var(--text-3);font-weight:400">vs</span> ${seedLabel2}${row.team2}</div>
           ${timeLabel}
         </div>
-        <div class="team-row">
-          <div class="team-label">${row.team1} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts1}pts</span></div>
+        <div class="team-row ${t1cls}">
+          <div class="team-label">${row.team1}<span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts1}pts</span></div>
           <div class="bar-bg"><div class="bar-fill t1" style="width:${t1pct}%">${t1pct > 10 ? t1pct + "%" : ""}</div></div>
           <div class="pills">${pillHtml(t1p, "t1")}</div>
         </div>
-        <div class="team-row">
-          <div class="team-label">${row.team2} <span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts2}pts</span></div>
+        <div class="team-row ${t2cls}">
+          <div class="team-label">${row.team2}<span style="font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text)">+${pts2}pts</span></div>
           <div class="bar-bg"><div class="bar-fill t2" style="width:${t2pct}%">${t2pct > 10 ? t2pct + "%" : ""}</div></div>
           <div class="pills">${pillHtml(t2p, "t2")}</div>
         </div>
         ${
           otp.length
-            ? `<div class="team-row">
+            ? `<div class="team-row other-picks">
           <div class="team-label">Other</div>
           <div class="bar-bg"><div class="bar-fill other" style="width:${otpct}%">${otpct > 10 ? otpct + "%" : ""}</div></div>
           <div class="pills">${otPillHtml}</div>
@@ -1025,64 +1155,107 @@
 
       function renderPerson() {
         const p = activePerson;
-        const champRow = DATA.find((r) => r.round_num === 6);
-        document.getElementById("champPick").textContent =
-          champRow?.picks[p] || "—";
+        const remaining = getRemainingTeams();
 
-        const PERSON_REGION_ORDER = [
-          ["East", "West"],
-          ["South", "Midwest"],
+        // champion pick
+        const champRow = DATA.find((r) => r.round_num === 6);
+
+        function maxRemainingForTeam(team, fromRoundNum) {
+          let total = 0;
+          for (let rn = fromRoundNum; rn <= 6; rn++) {
+            const rows = DATA.filter((r) => r.round_num === rn);
+            const pickedInRound = rows.some((r) => r.picks[p] === team);
+            if (!pickedInRound) break; // person didn't pick this team to reach this round
+            total += BASE_PTS[rn] || 0;
+          }
+          return total;
+        }
+
+        // get all picks for this person by round_num, grouped by region
+        // columns: R2 (from r1 picks), S16 (r2), E8 (r3), FF (r4), Title (r5), Champ (r6)
+        const REGIONS = ["East", "South", "West", "Midwest"];
+
+        // build picks per column
+        // col N shows picks from round_num = N-1 (teams picked to *reach* round N)
+        // except champ = round_num 6 picks
+        function getColPicks(sourceRoundNum, regions) {
+          return regions.map((region) => {
+            const rows = DATA.filter(
+              (r) => r.round_num === sourceRoundNum && r.region === region,
+            );
+            return {
+              region,
+              picks: rows.map((r) => r.picks[p]).filter(Boolean),
+            };
+          });
+        }
+
+        const cols = [
+          { label: "R2", count: 32, source: 1, showPts: "seed" },
+          { label: "S16", count: 16, source: 2, showPts: "max", fromRound: 3 },
+          { label: "E8", count: 8, source: 3, showPts: "max", fromRound: 4 },
+          { label: "FF", count: 4, source: 4, showPts: "max", fromRound: 5 },
+          { label: "Title", count: 2, source: 5, showPts: "max", fromRound: 6 },
         ];
 
-        let html = "";
-        for (const pair of PERSON_REGION_ORDER) {
-          html += `<div class="bracket" style="margin-bottom:1px">`;
-          for (const region of pair) {
-            html += `<div class="person-quadrant"><div class="pq-header ${region.toLowerCase()}">${region}</div>`;
-            const regionRows = DATA.filter(
-              (r) => r.region === region && r.round_num < 6,
-            ).sort((a, b) => a.round_num - b.round_num);
-            for (const row of regionRows) {
-              const pick = row.picks[p];
-              if (!pick) continue;
-              const pts = potentialPts(row.round_num, pick, DATA);
-              const result = row.result;
-              const isCorrect = result && pick === result;
-              const isWrong = result && pick !== result;
-              const statusCls = result ? "final" : "";
-              const pickCls = isCorrect ? "correct" : isWrong ? "wrong" : "";
-              const roundLabel =
-                ROUNDS.find((r) => r.num === row.round_num)?.label || "";
-              html += `<div class="pick-row ${statusCls}">
-              <span class="matchup-label">${roundLabel} · ${row.slot}</span>
-              <span>
-                <span class="pick-val ${pickCls}">${pick}</span>
-                <span class="pick-pts pick-val ${pickCls}">+${pts}</span>
-              </span>
-            </div>`;
-            }
-            html += `</div>`;
+        function pickHtml(team, roundNum, colCfg) {
+          if (!team) return "";
+          const isAlive = remaining.has(team);
+          const result = DATA.find(
+            (r) => r.picks[p] === team && r.round_num === roundNum && r.result,
+          );
+          const isCorrect = result && result.result === team;
+          const cls = !isAlive ? "wrong" : isCorrect ? "correct" : "pending";
+
+          let ptsStr = "";
+          if (colCfg.showPts === "seed") {
+            const pts = potentialPts(roundNum, team, DATA);
+            ptsStr = `<span class="bpv-pts">+${pts}</span>`;
+          } else if (colCfg.showPts === "max" && isAlive) {
+            const max = maxRemainingForTeam(team, colCfg.fromRound);
+            ptsStr = `<span class="bpv-pts">${max}↑</span>`;
           }
+          return `<div class="bpv-pick ${cls}">${team}${ptsStr}</div>`;
+        }
+
+        // build HTML
+        let html = `<div class="bpv-wrap"><div class="bpv-grid">`;
+
+        for (const col of cols) {
+          const byRegion = getColPicks(col.source, REGIONS);
+          html += `<div class="bpv-col">
+        <div class="bpv-hdr">${col.label}<span>${col.count}</span></div>`;
+
+          byRegion.forEach(({ region, picks: teamPicks }, ri) => {
+            if (ri > 0) html += `<div class="bpv-divider"></div>`;
+            teamPicks.forEach((team) => {
+              html += pickHtml(team, col.source, col);
+            });
+          });
+
           html += `</div>`;
         }
 
-        // Final Four rows
-        const ffRows = DATA.filter((r) => r.round_num === 5);
-        if (ffRows.some((r) => r.picks[p])) {
-          html += `<div style="margin-top:1px;background:var(--border);border-radius:var(--radius-lg);overflow:hidden">
-          <div class="person-quadrant" style="background:var(--bg)">
-            <div class="pq-header" style="color:#4a2d8a">Final Four</div>`;
-          for (const row of ffRows) {
-            const pick = row.picks[p];
-            if (!pick) continue;
-            const pts = potentialPts(row.round_num, pick, DATA);
-            html += `<div class="pick-row">
-            <span class="matchup-label">${row.region}</span>
-            <span><span class="pick-val">${pick}</span><span class="pick-pts">${pts}pt</span></span>
-          </div>`;
-          }
-          html += `</div></div>`;
-        }
+        // champion column
+        const champPick = champRow?.picks[p];
+        html += `<div class="bpv-col">
+        <div class="bpv-hdr">Champ<span>1</span></div>
+          ${champPick ? `<div class="bpv-pick champ">${champPick}<span class="bpv-pts">21</span></div>` : ""}
+        </div>`;
+
+        html += `</div>`; // end grid
+
+        // alive summary
+        const aliveSummary = cols.map((col) => {
+          const allPicks = DATA.filter((r) => r.round_num === col.source)
+            .map((r) => r.picks[p])
+            .filter(Boolean);
+          const aliveCount = allPicks.filter((t) => remaining.has(t)).length;
+          return `<div class="bpv-alive-cell">${aliveCount}/${allPicks.length} alive</div>`;
+        });
+        html += `<div class="bpv-alive">${aliveSummary.join("")}<div class="bpv-alive-cell"></div></div>`;
+
+        html += `</div>`; // end wrap
 
         document.getElementById("personView").innerHTML = html;
       }
@@ -1574,16 +1747,7 @@
           PEOPLE = people;
           activePerson = people[0];
 
-          // set active round to highest round with results + 1
-          const roundsWithResults = [
-            ...new Set(rows.filter((r) => r.result).map((r) => r.round_num)),
-          ];
-          const maxWithResult = roundsWithResults.length
-            ? Math.max(...roundsWithResults)
-            : 0;
-          const availableRounds = [...new Set(rows.map((r) => r.round_num))];
-          const maxAvailable = Math.max(...availableRounds);
-          activeRound = Math.min(maxWithResult + 1, maxAvailable);
+          activeRound = 6; // UPDATE EACH ROUND
 
           const activeRoundLabel =
             ROUNDS.find((r) => r.num === activeRound)?.label || "Round 1";
