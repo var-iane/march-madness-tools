@@ -582,6 +582,138 @@
       .person-result .winner {
         color: var(--upcoming);
       }
+      /* pick drill-down */
+      .drill-section {
+        margin-top: 1.5rem;
+      }
+      .drill-round {
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .drill-round-hdr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        background: var(--bg);
+        cursor: pointer;
+        user-select: none;
+      }
+      .drill-round-hdr:hover {
+        background: var(--border);
+      }
+      .drill-round-label {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-2);
+      }
+      .drill-round-summary {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-3);
+      }
+      .drill-round-summary .earned {
+        color: var(--upcoming);
+      }
+      .drill-round-summary .missed {
+        color: var(--south);
+      }
+      .drill-chevron {
+        font-size: 11px;
+        color: var(--text-3);
+        transition: transform 0.2s;
+      }
+      .drill-round.open .drill-chevron {
+        transform: rotate(180deg);
+      }
+      .drill-body {
+        display: none;
+      }
+      .drill-round.open .drill-body {
+        display: block;
+      }
+      .drill-row {
+        display: grid;
+        grid-template-columns: 130px 1fr 120px 60px;
+        gap: 8px;
+        align-items: center;
+        padding: 7px 14px;
+        border-top: 0.5px solid var(--border);
+        font-size: 12px;
+      }
+      .drill-slot {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-3);
+      }
+      .drill-matchup {
+        color: var(--text-2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .drill-pick {
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .drill-pick.correct {
+        color: var(--upcoming);
+      }
+      .drill-pick.wrong {
+        color: var(--south);
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .drill-pick.dead {
+        color: var(--text-3);
+        text-decoration: line-through;
+        opacity: 0.45;
+        font-style: italic;
+      }
+      .drill-pick.pending {
+        color: var(--text);
+      }
+      .upset-star {
+        color: #f0b429;
+        font-size: 12px;
+        text-decoration: none;
+        font-style: normal;
+      }
+      .drill-pts {
+        font-family: var(--mono);
+        font-size: 11px;
+        text-align: right;
+      }
+      .drill-pts.earned {
+        color: var(--upcoming);
+        font-weight: 500;
+      }
+      .drill-pts.missed {
+        color: var(--south);
+        opacity: 0.7;
+        text-decoration: line-through;
+      }
+      .drill-pts.pending {
+        color: var(--text-3);
+      }
+      .drill-pts.dead {
+        color: var(--text-3);
+        opacity: 0.45;
+        text-decoration: line-through;
+      }
+      @media (max-width: 600px) {
+        .drill-row {
+          grid-template-columns: 90px 1fr 90px 50px;
+          gap: 4px;
+        }
+      }
       /* bracket person view */
       .bpv-wrap {
         overflow-x: auto;
@@ -1286,6 +1418,148 @@
         renderPerson();
       }
 
+      function buildDrillDown(p, remaining) {
+        const regionOrder = [
+          "East",
+          "South",
+          "West",
+          "Midwest",
+          "East/South",
+          "West/Midwest",
+          "National",
+        ];
+
+        // determine which round to auto-open
+        const autoOpen = new Set([
+          activeRound,
+          activeRound - 1,
+          activeRound - 2,
+          activeRound - 3,
+        ]);
+
+        const legend = `<div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-bottom:8px;text-align:right;">
+          <span class="upset-star">★</span> = upset pick
+        </div>`;
+
+        return (
+          legend +
+          ROUNDS.map((round) => {
+            const rows = DATA.filter((r) => r.round_num === round.num);
+            if (!rows.length) return "";
+
+            // sort rows by region order then slot
+            rows.sort(
+              (a, b) =>
+                regionOrder.indexOf(a.region) - regionOrder.indexOf(b.region),
+            );
+
+            let earned = 0,
+              missed = 0,
+              correct = 0,
+              played = 0;
+            let rowsHtml = "";
+
+            rows.forEach((game) => {
+              const pick = game.picks[p];
+              if (!pick) return;
+
+              const pts = potentialPts(game.round_num, pick, DATA);
+              const hasResult = !!game.result;
+              const isCorrect = hasResult && game.result === pick;
+              const isWrong = hasResult && game.result !== pick;
+              // dead = eliminated before this round even started
+              const isDead = !hasResult && !remaining.has(pick);
+
+              // upset pick: picked team has higher seed number than opponent
+              const r1rows = DATA.filter((r) => r.round_num === 1);
+              let pickSeed = null,
+                oppSeed = null;
+              for (const r of r1rows) {
+                if (r.team1 === pick) {
+                  pickSeed = r.seed1;
+                  break;
+                }
+                if (r.team2 === pick) {
+                  pickSeed = r.seed2;
+                  break;
+                }
+              }
+              // find opponent seed from the game row
+              if (game.team1 && game.team2) {
+                if (game.team1 === pick && game.seed2) oppSeed = game.seed2;
+                if (game.team2 === pick && game.seed1) oppSeed = game.seed1;
+              }
+              const isUpset = pickSeed && oppSeed && pickSeed > oppSeed;
+
+              if (hasResult) played++;
+              if (isCorrect) {
+                correct++;
+                earned += pts;
+              }
+              if (isWrong) missed += pts;
+
+              const pickCls = isCorrect
+                ? "correct"
+                : isWrong
+                  ? "wrong"
+                  : isDead
+                    ? "dead"
+                    : "pending";
+              const ptsCls = isCorrect
+                ? "earned"
+                : isWrong
+                  ? "missed"
+                  : isDead
+                    ? "dead"
+                    : "pending";
+              const ptsStr = `+${pts}pts`;
+              const upsetStar = isUpset
+                ? `<span class="upset-star">★</span>`
+                : "";
+              const matchup =
+                game.team1 && game.team2
+                  ? `${game.team1} vs. ${game.team2}`
+                  : game.slot;
+
+              rowsHtml += `<div class="drill-row">
+              <div class="drill-slot">${game.region} ${game.slot}</div>
+              <div class="drill-matchup">${matchup}</div>
+              <div class="drill-pick ${pickCls}">${pick}${upsetStar}</div>
+              <div class="drill-pts ${ptsCls}">${ptsStr}</div>
+            </div>`;
+            });
+
+            const isOpen = autoOpen.has(round.num);
+            const summaryParts = [];
+            if (played > 0) {
+              summaryParts.push(
+                `<span class="earned">${correct}/${played} correct · +${earned}pts</span>`,
+              );
+              if (missed > 0)
+                summaryParts.push(
+                  `<span class="missed">${missed}pts missed</span>`,
+                );
+            } else {
+              summaryParts.push("upcoming");
+            }
+
+            return `<div class="drill-round ${isOpen ? "open" : ""}" id="drill-${round.num}">
+            <div class="drill-round-hdr" onclick="toggleDrill(${round.num})">
+              <span class="drill-round-label">${round.label}</span>
+              <span class="drill-round-summary">${summaryParts.join(" · ")}</span>
+              <span class="drill-chevron">▾</span>
+            </div>
+            <div class="drill-body">${rowsHtml}</div>
+          </div>`;
+          }).join("")
+        );
+      }
+
+      function toggleDrill(roundNum) {
+        const el = document.getElementById(`drill-${roundNum}`);
+        if (el) el.classList.toggle("open");
+      }
+
       function renderPerson() {
         const p = activePerson;
         const remaining = getRemainingTeams();
@@ -1323,7 +1597,6 @@
             0,
           );
 
-          // potential left = sum of potentialPts for all unplayed games where pick is still alive
           const potentialLeft = rows
             .filter((r) => !r.result)
             .filter((r) => remaining.has(r.picks[p]))
@@ -1353,7 +1626,7 @@
             <td class="sc-earned ${earned === 0 && played.length ? "zero" : ""}">${earnedStr}</td>
             <td class="sc-remaining ${potentialLeft === 0 ? "zero" : ""}">${potStr}</td>
           </tr>`;
-              });
+        });
 
         scorecardHtml += `</tbody></table>`;
 
@@ -1362,7 +1635,7 @@
         const roundLabel =
           ROUNDS.find((r) => r.num === activeRound)?.label || "";
 
-        let detailHtml = `<div class="round-detail-hdr">${roundLabel} — picks</div>`;
+        let detailHtml = `<div class="round-detail-hdr">Current round: ${roundLabel}</div>`;
 
         // group by region
         const regionOrder = [
@@ -1402,7 +1675,7 @@
             const resultLine = game.result
               ? `<div class="person-result">Result: <span class="winner">${game.result}</span></div>`
               : game.team1 && game.team2
-                ? `<div class="person-result">${game.team1} vs ${game.team2}</div>`
+                ? `<div class="person-result">${game.team1} vs. ${game.team2}</div>`
                 : "";
 
             const maxLine =
@@ -1411,21 +1684,25 @@
                 : "";
 
             detailHtml += `<div class="person-game">
-        <div class="person-game-slot">${region} · ${game.slot}</div>
-        <div class="person-pick-row">
-          <div class="person-pick-name ${pickCls}">${pick}</div>
-          <div class="person-pick-pts">
-            <span class="base-pts">${isCorrect ? `+${pts}pts ✓` : isWrong ? `0pts` : `+${pts}pts if win`}</span>
-            ${maxLine}
-          </div>
-        </div>
-        ${resultLine}
-      </div>`;
+              <div class="person-pick-row">
+                <div class="person-pick-name ${pickCls}">${pick}</div>
+                <div class="person-pick-pts">
+                  <span class="base-pts">${isCorrect ? `+${pts}pts ✓` : isWrong ? `0pts` : `+${pts}pts if win`}</span>
+                  ${maxLine}
+                </div>
+              </div>
+              ${resultLine}
+            </div>`;
           });
         });
 
+        const drillHtml = `<div class="drill-section">${buildDrillDown(p, remaining)}</div>`;
+
         document.getElementById("personView").innerHTML =
-          scorecardHtml + detailHtml;
+        `<div style="font-size:14px;font-weight:500;margin:3rem 0 0.75rem;">Points by round</div>`
+          + detailHtml + scorecardHtml + 
+          `<div style="font-size:14px;font-weight:500;margin:3rem 0 0.75rem;">Points by game</div>`
+          + drillHtml;
       }
 
       // function renderPerson() {
@@ -1826,7 +2103,7 @@
         });
 
         // x-axis labels — short form without seeds
-        const labels = played.map((r) => `${r.team1} vs ${r.team2}`);
+        const labels = played.map((r) => `${r.team1} vs. ${r.team2}`);
 
         // round boundaries
         const roundBoundaries = [];
