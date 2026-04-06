@@ -449,6 +449,139 @@
         margin-left: 6px;
         white-space: nowrap;
       }
+      /* person scorecard */
+      .scorecard {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+      }
+      .scorecard th {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-3);
+        padding: 8px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .scorecard th.right {
+        text-align: right;
+      }
+      .scorecard td {
+        padding: 9px 14px;
+        font-size: 13px;
+        border-bottom: 1px solid var(--border);
+      }
+      .scorecard tr:last-child td {
+        border-bottom: none;
+      }
+      .scorecard tr.active-round td {
+        background: var(--surface);
+        font-weight: 500;
+      }
+      .scorecard tr.settled td {
+        color: var(--text-2);
+      }
+      .sc-round {
+        font-weight: 500;
+      }
+      .sc-num {
+        font-family: var(--mono);
+        text-align: right;
+      }
+      .sc-earned {
+        font-family: var(--mono);
+        text-align: right;
+        color: var(--upcoming);
+      }
+      .sc-earned.zero {
+        color: var(--text-3);
+      }
+      .sc-remaining {
+        font-family: var(--mono);
+        text-align: right;
+        color: var(--text-2);
+      }
+      .sc-remaining.zero {
+        color: var(--text-3);
+      }
+      /* current round detail */
+      .round-detail-hdr {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-2);
+        margin-bottom: 0.75rem;
+      }
+      .person-game {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 8px;
+      }
+      .person-game:last-child {
+        margin-bottom: 0;
+      }
+      .person-game-slot {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-3);
+        margin-bottom: 6px;
+      }
+      .person-pick-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .person-pick-name {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .person-pick-name.correct {
+        color: var(--upcoming);
+      }
+      .person-pick-name.wrong {
+        color: var(--south);
+        text-decoration: line-through;
+        opacity: 0.6;
+      }
+      .person-pick-name.pending {
+        color: var(--text);
+      }
+      .person-pick-pts {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--text-2);
+        text-align: right;
+      }
+      .person-pick-pts .base-pts {
+        display: block;
+      }
+      .person-pick-pts .max-pts {
+        display: block;
+        font-size: 10px;
+        color: var(--text-3);
+      }
+      .person-result {
+        font-size: 12px;
+        color: var(--text-3);
+        font-family: var(--mono);
+        margin-top: 4px;
+      }
+      .person-result .winner {
+        color: var(--upcoming);
+      }
       /* bracket person view */
       .bpv-wrap {
         overflow-x: auto;
@@ -1157,108 +1290,250 @@
         const p = activePerson;
         const remaining = getRemainingTeams();
 
-        // champion pick
-        const champRow = DATA.find((r) => r.round_num === 6);
-
         function maxRemainingForTeam(team, fromRoundNum) {
           let total = 0;
           for (let rn = fromRoundNum; rn <= 6; rn++) {
-            const rows = DATA.filter((r) => r.round_num === rn);
-            const pickedInRound = rows.some((r) => r.picks[p] === team);
-            if (!pickedInRound) break; // person didn't pick this team to reach this round
+            const pickedInRound = DATA.filter((r) => r.round_num === rn).some(
+              (r) => r.picks[p] === team,
+            );
+            if (!pickedInRound) break;
             total += BASE_PTS[rn] || 0;
           }
           return total;
         }
 
-        // get all picks for this person by round_num, grouped by region
-        // columns: R2 (from r1 picks), S16 (r2), E8 (r3), FF (r4), Title (r5), Champ (r6)
-        const REGIONS = ["East", "South", "West", "Midwest"];
+        // ── Scorecard ──────────────────────────────────────────────────────────────
+        let scorecardHtml = `<table class="scorecard">
+          <thead><tr>
+            <th>Round</th>
+            <th class="right">Correct</th>
+            <th class="right">Earned</th>
+            <th class="right">Potential left</th>
+          </tr></thead><tbody>`;
 
-        // build picks per column
-        // col N shows picks from round_num = N-1 (teams picked to *reach* round N)
-        // except champ = round_num 6 picks
-        function getColPicks(sourceRoundNum, regions) {
-          return regions.map((region) => {
-            const rows = DATA.filter(
-              (r) => r.round_num === sourceRoundNum && r.region === region,
-            );
-            return {
-              region,
-              picks: rows.map((r) => r.picks[p]).filter(Boolean),
-            };
-          });
-        }
+        ROUNDS.forEach((round) => {
+          const rows = DATA.filter((r) => r.round_num === round.num);
+          if (!rows.length) return;
 
-        const cols = [
-          { label: "R2", count: 32, source: 1, showPts: "seed" },
-          { label: "S16", count: 16, source: 2, showPts: "max", fromRound: 3 },
-          { label: "E8", count: 8, source: 3, showPts: "max", fromRound: 4 },
-          { label: "FF", count: 4, source: 4, showPts: "max", fromRound: 5 },
-          { label: "Title", count: 2, source: 5, showPts: "max", fromRound: 6 },
-        ];
-
-        function pickHtml(team, roundNum, colCfg) {
-          if (!team) return "";
-          const isAlive = remaining.has(team);
-          const result = DATA.find(
-            (r) => r.picks[p] === team && r.round_num === roundNum && r.result,
+          const played = rows.filter((r) => r.result);
+          const correct = played.filter((r) => r.picks[p] === r.result);
+          const earned = correct.reduce(
+            (sum, r) =>
+              sum + earnedPts(r.round_num, r.picks[p], r.result, DATA),
+            0,
           );
-          const isCorrect = result && result.result === team;
-          const cls = !isAlive ? "wrong" : isCorrect ? "correct" : "pending";
 
-          let ptsStr = "";
-          if (colCfg.showPts === "seed") {
-            const pts = potentialPts(roundNum, team, DATA);
-            ptsStr = `<span class="bpv-pts">+${pts}</span>`;
-          } else if (colCfg.showPts === "max" && isAlive) {
-            const max = maxRemainingForTeam(team, colCfg.fromRound);
-            ptsStr = `<span class="bpv-pts">${max}↑</span>`;
-          }
-          return `<div class="bpv-pick ${cls}">${team}${ptsStr}</div>`;
-        }
+          // potential left = sum of potentialPts for all unplayed games where pick is still alive
+          const potentialLeft = rows
+            .filter((r) => !r.result)
+            .filter((r) => remaining.has(r.picks[p]))
+            .reduce(
+              (sum, r) => sum + potentialPts(r.round_num, r.picks[p], DATA),
+              0,
+            );
 
-        // build HTML
-        let html = `<div class="bpv-wrap"><div class="bpv-grid">`;
+          const isActive = round.num === activeRound;
+          const isSettled = played.length === rows.length;
+          const rowCls = isActive ? "active-round" : isSettled ? "settled" : "";
+          const correctStr = played.length
+            ? `${correct.length}/${played.length}`
+            : "—";
+          const earnedStr =
+            earned > 0 ? `+${earned}pts` : played.length ? "0pts" : "—";
+          const potStr =
+            potentialLeft > 0
+              ? `+${potentialLeft}pts`
+              : isSettled
+                ? "—"
+                : "0pts";
 
-        for (const col of cols) {
-          const byRegion = getColPicks(col.source, REGIONS);
-          html += `<div class="bpv-col">
-        <div class="bpv-hdr">${col.label}<span>${col.count}</span></div>`;
+          scorecardHtml += `<tr class="${rowCls}">
+            <td class="sc-round">${round.label}</td>
+            <td class="sc-num">${correctStr}</td>
+            <td class="sc-earned ${earned === 0 && played.length ? "zero" : ""}">${earnedStr}</td>
+            <td class="sc-remaining ${potentialLeft === 0 ? "zero" : ""}">${potStr}</td>
+          </tr>`;
+              });
 
-          byRegion.forEach(({ region, picks: teamPicks }, ri) => {
-            if (ri > 0) html += `<div class="bpv-divider"></div>`;
-            teamPicks.forEach((team) => {
-              html += pickHtml(team, col.source, col);
-            });
-          });
+        scorecardHtml += `</tbody></table>`;
 
-          html += `</div>`;
-        }
+        // ── Current round detail ───────────────────────────────────────────────────
+        const currentRows = DATA.filter((r) => r.round_num === activeRound);
+        const roundLabel =
+          ROUNDS.find((r) => r.num === activeRound)?.label || "";
 
-        // champion column
-        const champPick = champRow?.picks[p];
-        html += `<div class="bpv-col">
-        <div class="bpv-hdr">Champ<span>1</span></div>
-          ${champPick ? `<div class="bpv-pick champ">${champPick}<span class="bpv-pts">21</span></div>` : ""}
-        </div>`;
+        let detailHtml = `<div class="round-detail-hdr">${roundLabel} — picks</div>`;
 
-        html += `</div>`; // end grid
-
-        // alive summary
-        const aliveSummary = cols.map((col) => {
-          const allPicks = DATA.filter((r) => r.round_num === col.source)
-            .map((r) => r.picks[p])
-            .filter(Boolean);
-          const aliveCount = allPicks.filter((t) => remaining.has(t)).length;
-          return `<div class="bpv-alive-cell">${aliveCount}/${allPicks.length} alive</div>`;
+        // group by region
+        const regionOrder = [
+          "East",
+          "South",
+          "West",
+          "Midwest",
+          "East/South",
+          "West/Midwest",
+          "National",
+        ];
+        const grouped = {};
+        currentRows.forEach((r) => {
+          if (!grouped[r.region]) grouped[r.region] = [];
+          grouped[r.region].push(r);
         });
-        html += `<div class="bpv-alive">${aliveSummary.join("")}<div class="bpv-alive-cell"></div></div>`;
 
-        html += `</div>`; // end wrap
+        regionOrder.forEach((region) => {
+          const games = grouped[region];
+          if (!games) return;
 
-        document.getElementById("personView").innerHTML = html;
+          games.forEach((game) => {
+            const pick = game.picks[p];
+            if (!pick) return;
+
+            const pts = potentialPts(game.round_num, pick, DATA);
+            const maxPts = maxRemainingForTeam(pick, game.round_num);
+            const isAlive = remaining.has(pick);
+            const isCorrect = game.result && game.result === pick;
+            const isWrong = game.result ? game.result !== pick : !isAlive;
+            const pickCls = isCorrect
+              ? "correct"
+              : isWrong
+                ? "wrong"
+                : "pending";
+
+            const resultLine = game.result
+              ? `<div class="person-result">Result: <span class="winner">${game.result}</span></div>`
+              : game.team1 && game.team2
+                ? `<div class="person-result">${game.team1} vs ${game.team2}</div>`
+                : "";
+
+            const maxLine =
+              isAlive && maxPts > pts
+                ? `<span class="max-pts">${maxPts}pts max</span>`
+                : "";
+
+            detailHtml += `<div class="person-game">
+        <div class="person-game-slot">${region} · ${game.slot}</div>
+        <div class="person-pick-row">
+          <div class="person-pick-name ${pickCls}">${pick}</div>
+          <div class="person-pick-pts">
+            <span class="base-pts">${isCorrect ? `+${pts}pts ✓` : isWrong ? `0pts` : `+${pts}pts if win`}</span>
+            ${maxLine}
+          </div>
+        </div>
+        ${resultLine}
+      </div>`;
+          });
+        });
+
+        document.getElementById("personView").innerHTML =
+          scorecardHtml + detailHtml;
       }
+
+      // function renderPerson() {
+      //   const p = activePerson;
+      //   const remaining = getRemainingTeams();
+
+      //   // champion pick
+      //   const champRow = DATA.find((r) => r.round_num === 6);
+
+      //   function maxRemainingForTeam(team, fromRoundNum) {
+      //     let total = 0;
+      //     for (let rn = fromRoundNum; rn <= 6; rn++) {
+      //       const rows = DATA.filter((r) => r.round_num === rn);
+      //       const pickedInRound = rows.some((r) => r.picks[p] === team);
+      //       if (!pickedInRound) break; // person didn't pick this team to reach this round
+      //       total += BASE_PTS[rn] || 0;
+      //     }
+      //     return total;
+      //   }
+
+      //   // get all picks for this person by round_num, grouped by region
+      //   // columns: R2 (from r1 picks), S16 (r2), E8 (r3), FF (r4), Title (r5), Champ (r6)
+      //   const REGIONS = ["East", "South", "West", "Midwest"];
+
+      //   // build picks per column
+      //   // col N shows picks from round_num = N-1 (teams picked to *reach* round N)
+      //   // except champ = round_num 6 picks
+      //   function getColPicks(sourceRoundNum, regions) {
+      //     return regions.map((region) => {
+      //       const rows = DATA.filter(
+      //         (r) => r.round_num === sourceRoundNum && r.region === region,
+      //       );
+      //       return {
+      //         region,
+      //         picks: rows.map((r) => r.picks[p]).filter(Boolean),
+      //       };
+      //     });
+      //   }
+
+      //   const cols = [
+      //     { label: "R2", count: 32, source: 1, showPts: "seed" },
+      //     { label: "S16", count: 16, source: 2, showPts: "max", fromRound: 3 },
+      //     { label: "E8", count: 8, source: 3, showPts: "max", fromRound: 4 },
+      //     { label: "FF", count: 4, source: 4, showPts: "max", fromRound: 5 },
+      //     { label: "Title", count: 2, source: 5, showPts: "max", fromRound: 6 },
+      //   ];
+
+      //   function pickHtml(team, roundNum, colCfg) {
+      //     if (!team) return "";
+      //     const isAlive = remaining.has(team);
+      //     const result = DATA.find(
+      //       (r) => r.picks[p] === team && r.round_num === roundNum && r.result,
+      //     );
+      //     const isCorrect = result && result.result === team;
+      //     const cls = !isAlive ? "wrong" : isCorrect ? "correct" : "pending";
+
+      //     let ptsStr = "";
+      //     if (colCfg.showPts === "seed") {
+      //       const pts = potentialPts(roundNum, team, DATA);
+      //       ptsStr = `<span class="bpv-pts">+${pts}</span>`;
+      //     } else if (colCfg.showPts === "max" && isAlive) {
+      //       const max = maxRemainingForTeam(team, colCfg.fromRound);
+      //       ptsStr = `<span class="bpv-pts">${max}↑</span>`;
+      //     }
+      //     return `<div class="bpv-pick ${cls}">${team}${ptsStr}</div>`;
+      //   }
+
+      //   // build HTML
+      //   let html = `<div class="bpv-wrap"><div class="bpv-grid">`;
+
+      //   for (const col of cols) {
+      //     const byRegion = getColPicks(col.source, REGIONS);
+      //     html += `<div class="bpv-col">
+      //   <div class="bpv-hdr">${col.label}<span>${col.count}</span></div>`;
+
+      //     byRegion.forEach(({ region, picks: teamPicks }, ri) => {
+      //       if (ri > 0) html += `<div class="bpv-divider"></div>`;
+      //       teamPicks.forEach((team) => {
+      //         html += pickHtml(team, col.source, col);
+      //       });
+      //     });
+
+      //     html += `</div>`;
+      //   }
+
+      //   // champion column
+      //   const champPick = champRow?.picks[p];
+      //   html += `<div class="bpv-col">
+      //   <div class="bpv-hdr">Champ<span>1</span></div>
+      //     ${champPick ? `<div class="bpv-pick champ">${champPick}<span class="bpv-pts">21</span></div>` : ""}
+      //   </div>`;
+
+      //   html += `</div>`; // end grid
+
+      //   // alive summary
+      //   const aliveSummary = cols.map((col) => {
+      //     const allPicks = DATA.filter((r) => r.round_num === col.source)
+      //       .map((r) => r.picks[p])
+      //       .filter(Boolean);
+      //     const aliveCount = allPicks.filter((t) => remaining.has(t)).length;
+      //     return `<div class="bpv-alive-cell">${aliveCount}/${allPicks.length} alive</div>`;
+      //   });
+      //   html += `<div class="bpv-alive">${aliveSummary.join("")}<div class="bpv-alive-cell"></div></div>`;
+
+      //   html += `</div>`; // end wrap
+
+      //   document.getElementById("personView").innerHTML = html;
+      // }
 
       // ── Tab switching ─────────────────────────────────────────────────────────────
       function switchTab(t, el) {
@@ -1752,7 +2027,7 @@
           const activeRoundLabel =
             ROUNDS.find((r) => r.num === activeRound)?.label || "Round 1";
           document.getElementById("metaLine").textContent =
-            `${people.length} players · We're in the ${activeRoundLabel}`;
+            `${people.length} gamblers · We're in the ${activeRoundLabel}`;
           buildRoundTabs();
           renderBracket();
           buildPersonGrid();
