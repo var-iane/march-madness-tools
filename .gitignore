@@ -4,7 +4,6 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 # Specific files
-bracket-viewer-test.html
 
 # Ignore all PDF files
 *.pdf
