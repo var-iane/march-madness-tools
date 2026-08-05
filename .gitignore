@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Specific files
+bracket-viewer-test.html
+
+# Ignore all PDF files
+*.pdf
+
 # User-specific files
 *.rsuser
 *.suo
@@ -429,5 +435,3 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Ignore all PDF files
-*.pdf
