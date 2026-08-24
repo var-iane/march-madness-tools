@@ -2195,7 +2195,7 @@
           const activeRoundLabel =
             ROUNDS.find((r) => r.num === activeRound)?.label || "Round 1";
           document.getElementById("metaLine").textContent =
-            `${people.length} brackets | We're in ${activeRoundLabel}`;
+            `${people.length} brackets`;
           buildRoundTabs();
           renderBracket();
           buildPersonGrid();
